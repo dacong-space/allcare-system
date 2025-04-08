@@ -36,7 +36,7 @@ if (fs.existsSync(versionJsonPath)) {
   const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
   const versionJson = {
     version: packageJson.version,
-    buildTime: new Date().toISOString()
+    buildTime: timestamp // 使用数字时间戳而不是 ISO 格式字符串
   };
   fs.writeFileSync(versionJsonPath, JSON.stringify(versionJson, null, 2));
   console.log(`public/version.json 文件已更新，版本号: ${packageJson.version}`);

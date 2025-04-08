@@ -9,7 +9,7 @@ console.log(`环境变量中的版本号: ${import.meta.env.APP_VERSION || '未�
 
 // 获取构建时间戳
 // 这个值会在构建时被替换为实际的时间戳
-export const BUILD_TIMESTAMP = '__BUILD_TIMESTAMP__';
+export const BUILD_TIMESTAMP = '1744089972505';
 
 // 格式化时间戳为可读的日期时间
 export const formatBuildDate = (timestamp) => {
@@ -18,10 +18,30 @@ export const formatBuildDate = (timestamp) => {
   }
 
   try {
-    const date = new Date(parseInt(timestamp));
+    // 先尝试直接创建 Date 对象（处理 ISO 格式字符串）
+    let date = new Date(timestamp);
+
+    // 如果结果无效，尝试将其解析为数字
+    if (isNaN(date.getTime())) {
+      date = new Date(parseInt(timestamp));
+    }
+
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      console.error('无效的时间戳:', timestamp);
+      return '无效日期';
+    }
+
+    // 检查是否是1970年附近的日期（可能是错误的时间戳）
+    if (date.getFullYear() < 2000) {
+      console.warn('可能是错误的时间戳:', timestamp, '转换结果:', date.toLocaleString());
+      return '当前时间';
+    }
+
     return date.toLocaleString();
   } catch (e) {
-    return timestamp;
+    console.error('时间戳转换错误:', e);
+    return '无法解析的时间';
   }
 };
 
