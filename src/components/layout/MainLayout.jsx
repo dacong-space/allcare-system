@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Layout, Menu, Button, Avatar, Dropdown, Badge, Breadcrumb } from 'antd';
+import './MenuAnimation.css';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -72,6 +73,18 @@ const StyledContent = styled(Content)`
   width: auto;
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  animation: fadeIn 0.5s ease-in-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   @media (max-width: 768px) {
     margin-left: 0;
@@ -79,28 +92,43 @@ const StyledContent = styled(Content)`
 `;
 
 const Logo = styled.div`
-  height: 64px;
+  height: 70px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: ${props => props.siderCollapsed ? 'center' : 'flex-start'};
   color: var(--primary-color);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.5px;
   transition: all 0.3s;
   background: var(--sidebar-bg);
   border-bottom: 1px solid var(--border-color);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   padding: 0 ${props => props.siderCollapsed ? '16px' : '24px'};
+  cursor: pointer;
 
   img {
-    max-height: 32px;
-    max-width: ${props => props.siderCollapsed ? '48px' : '32px'};
-    object-fit: contain;
+    height: 42px;
+    width: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   .logo-text {
     margin-left: 12px;
-    font-size: 18px;
+    font-size: 22px;
+    font-weight: 700;
+    transition: color 0.3s ease;
+  }
+
+  &:hover .logo-text {
+    color: var(--primary-color-light, #40a9ff);
   }
 `;
 
@@ -108,18 +136,36 @@ const UserInfo = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
 
   .username {
     margin-left: 8px;
     color: var(--text-primary);
     font-weight: 500;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    transition: color 0.3s ease;
+  }
+
+  &:hover .username {
+    color: var(--primary-color);
   }
 
   .ant-avatar {
     background-color: var(--primary-color);
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  &:hover .ant-avatar {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -145,12 +191,19 @@ const ThemeToggle = styled.div`
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   color: var(--text-primary);
   font-size: 18px;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: transparent;
 
   &:hover {
     color: var(--primary-color);
+    transform: rotate(30deg);
+    background-color: rgba(0, 0, 0, 0.05);
   }
 `;
 
@@ -279,10 +332,12 @@ const MainLayout = () => {
           boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)'
         }}
       >
-        <Logo siderCollapsed={collapsed}>
-          <img src="/allcare-system/images/logo.jpg" alt="Logo" height="32" />
-          {!collapsed && <span className="logo-text">AllCare</span>}
-        </Logo>
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <Logo siderCollapsed={collapsed}>
+            <img src="/allcare-system/images/logo.jpg" alt="Logo" />
+            {!collapsed && <span className="logo-text">Allcare</span>}
+          </Logo>
+        </Link>
         <Menu
           theme={theme === 'dark' ? 'dark' : 'light'}
           mode="inline"
@@ -308,7 +363,7 @@ const MainLayout = () => {
         <StyledHeader siderCollapsed={collapsed}>
           <HeaderLeft>
             <div
-              className="menu-toggle-btn"
+              className="menu-toggle-btn trigger-button"
               onClick={() => setCollapsed(!collapsed)}
               style={{
                 fontSize: '18px',
@@ -318,7 +373,9 @@ const MainLayout = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--text-primary)'
+                color: 'var(--text-primary)',
+                borderRadius: '4px',
+                transition: 'all 0.3s ease'
               }}
             >
               {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -334,7 +391,17 @@ const MainLayout = () => {
               <Button
                 type="text"
                 icon={<BellOutlined />}
-                style={{ fontSize: '16px' }}
+                className="notification-button"
+                style={{
+                  fontSize: '16px',
+                  transition: 'all 0.3s ease',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%'
+                }}
               />
             </Badge>
 

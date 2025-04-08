@@ -245,14 +245,9 @@ const CustomerInfo = () => {
 
   // 生成模拟数据
   const generateCustomers = () => {
-    // 中国城市
-    const chineseCities = ['北京', '上海', '广州', '深圳', '成都', '杭州', '南京', '武汉', '西安', '重庆'];
-
     // Maryland城市
     const marylandCities = ['Baltimore', 'Annapolis', 'Frederick', 'Rockville', 'Gaithersburg', 'Bethesda', 'Silver Spring', 'Columbia', 'Germantown', 'Waldorf'];
 
-    // 合并所有城市
-    const cities = [...chineseCities, ...marylandCities];
     const languages = ['中文', '英语', '法语', '德语', '日语'];
     const hours = ['20', '30', '40', '25', '35'];
     const statuses = ['active', 'inactive', 'pending'];
@@ -260,33 +255,61 @@ const CustomerInfo = () => {
     const pcaOptions = ['GZJ', 'ZQF', 'RB'];
     const supportPlannerOptions = ['John Smith', 'Mary Johnson', 'David Lee', 'Sarah Wang', 'Michael Chen'];
 
+    // 中文姓名组合
+    const firstNames = ['张', '李', '王', '赵', '钱', '孙', '周', '吴', '郑', '陈'];
+    const lastNames = ['明', '华', '强', '伟', '英', '文', '军', '杰', '浩', '浩', '文', '文', '文', '文'];
+
     const customers = [];
 
     for (let i = 0; i < 30; i++) {
-      const id = `C${String(i + 1001).padStart(4, '0')}`;
+      // 生成MA+3个随机数字的ID
+      const randomNum = Math.floor(Math.random() * 900) + 100; // 100-999的随机数
+      const id = `MA${randomNum}`;
       const gender = Math.random() > 0.5 ? '男' : '女';
+
+      // 生成随机姓名
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const name = firstName + lastName;
+
+      // 随机选择Maryland城市
+      const city = marylandCities[Math.floor(Math.random() * marylandCities.length)];
+
+      // 随机生成状态
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+      // 生成最新家访日期，在2025年1月1日至2025年4月8日之间
+      // 如果状态为活跃，则没有最新家访日期
+      let lastVisitDate = null;
+      if (status !== 'active') {
+        // 生成在2025年1月1日至2025年4月8日之间的随机日期
+        const start = new Date(2025, 0, 1); // 2025年1月1日
+        const end = new Date(2025, 3, 8);   // 2025年4月8日
+        const randomDate = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+        lastVisitDate = randomDate.toISOString().split('T')[0];
+      }
 
       // 创建客户数据对象
       const customer = {
         id: id,
-        name: `客户${i + 1}`,
+        name: name,
         gender: gender,
         age: Math.floor(Math.random() * 50) + 18,
         language: languages[Math.floor(Math.random() * languages.length)],
         phone: `(${Math.floor(Math.random() * 900) + 100})-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 10000)}`,
         email: `customer${i + 1}@example.com`,
-        city: cities[Math.floor(Math.random() * cities.length)],
-        address: `${cities[Math.floor(Math.random() * cities.length)]} Street ${Math.floor(Math.random() * 100) + 1}`,
+        city: city,
+        address: `${city}, Maryland, ${Math.floor(Math.random() * 100) + 1} ${['Main', 'Oak', 'Pine', 'Maple', 'Cedar'][Math.floor(Math.random() * 5)]} St`,
         hours: hours[Math.floor(Math.random() * hours.length)],
         joinDate: new Date(2022, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
         joinCount: Math.floor(Math.random() * 3) + 1,
-        status: statuses[Math.floor(Math.random() * statuses.length)],
+        status: status,
         points: Math.floor(Math.random() * 1000),
         preferredDates: ['Mon', 'Wed', 'Fri'].slice(0, Math.floor(Math.random() * 3) + 1),
         rn: rnOptions[Math.floor(Math.random() * rnOptions.length)],
         pca: pcaOptions[Math.floor(Math.random() * pcaOptions.length)],
         supportPlanner: supportPlannerOptions[Math.floor(Math.random() * supportPlannerOptions.length)],
-        lastVisitDate: Math.random() > 0.3 ? new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0] : null,
+        lastVisitDate: lastVisitDate,
       };
 
       // 添加紧急联系人信息
@@ -511,14 +534,9 @@ const CustomerInfo = () => {
     form.resetFields();
     setExpandedRowKeys([]);
 
-    // 生成新的客户ID
-    const maxId = customerData.length > 0
-      ? Math.max(...customerData.map(customer => parseInt(customer.id.replace('C', ''))))
-      : 1000;
-    const newId = `C${String(maxId + 1).padStart(4, '0')}`;
-
+    // 不预填客户ID
     form.setFieldsValue({
-      id: newId
+      id: ''
     });
 
     setIsModalVisible(true);
@@ -644,8 +662,15 @@ const CustomerInfo = () => {
         }, 3000);
       } else {
         // 添加新客户
+        // 如果用户没有输入ID，自动生成一个符合格式的ID
+        let customerId = values.id;
+        if (!customerId || customerId.trim() === '') {
+          const randomNum = Math.floor(Math.random() * 900) + 100; // 100-999的随机数
+          customerId = `MA${randomNum}`;
+        }
+
         const newCustomer = {
-          id: values.id,
+          id: customerId,
           name: values.name,
           age: values.age,
           gender: values.gender,
@@ -1061,10 +1086,10 @@ const CustomerInfo = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Form.Item
               name="id"
-              label="ID"
-              rules={[{ required: true, message: '请输入ID' }]}
+              label="ID (MA#)"
+              rules={[{ required: false }]}
             >
-              <Input placeholder="请输入ID" disabled={!!currentCustomer} />
+              <Input placeholder="请输入ID（格式：MA+数字）" disabled={!!currentCustomer} />
             </Form.Item>
 
             <Form.Item

@@ -200,10 +200,6 @@ const EmployeeInfo = () => {
       return Math.floor(Math.random() * 40) + 22; // 22-61岁
     };
 
-    // 生成随机加入次数
-    const getRandomJoinTimes = () => {
-      return Math.floor(Math.random() * 2) + 1; // 1-2次
-    };
 
     // 生成随机语言
     const languages = ['中文', '英语', '法语', '德语', '日语'];
@@ -218,14 +214,8 @@ const EmployeeInfo = () => {
       const position = positions[Math.floor(Math.random() * positions.length)];
       const status = statuses[Math.floor(Math.random() * statuses.length)];
       const city = cities[Math.floor(Math.random() * cities.length)];
-      const joinTimes = getRandomJoinTimes();
       const hireDate = getRandomDate();
 
-      // 离职时间可能为空（如果是在职员工）
-      const leaveDate = status === 'active' ? null : getRandomDate();
-
-      // 创建员工数据对象，按照指定的顺序排列字段
-      const employee = {};
 
       // 生成姓名
       const name = ['张', '李', '王', '赵', '钱', '孙', '周', '吴', '郑', '陈'][i % 10] +
@@ -233,26 +223,24 @@ const EmployeeInfo = () => {
                   (gender === '男' ? '男' : '女');
 
       // 生成地址
-      const address = `${city}市${['东', '西', '南', '北', '中'][Math.floor(Math.random() * 5)]}区`;
+      const address = Math.random() > 0.3 ? `${city}市${['东', '西', '南', '北', '中'][Math.floor(Math.random() * 5)]}区` : '';
 
-      // 按照指定的顺序添加字段
-      employee.id = id;
-      employee.name = name;
-      employee.age = age;
-      employee.gender = gender;
-      employee.language = language;
-      employee.phone = `(${Math.floor(Math.random() * 900) + 100})-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 10000)}`;
-      employee.email = `employee${i + 1}@example.com`;
-      employee.city = city;
-      employee.address = address;
-      employee.hireDate = hireDate;
-      employee.leaveDate = leaveDate;
-      employee.joinTimes = joinTimes;
-      employee.department = department;
-      employee.position = position;
-      employee.status = status;
-
-      return employee;
+      // 创建员工数据对象，按照指定的顺序排列字段
+      // 按照要求的数据结构：{ID，姓名，年龄，性别，语言，电话，邮箱，地址，加入时间，部门，职位，status}
+      return {
+        id: id,
+        name: name,
+        age: age,
+        gender: gender,
+        language: language,
+        phone: `(${Math.floor(Math.random() * 900) + 100})-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 10000)}`,
+        email: `employee${i + 1}@example.com`,
+        address: address,
+        joinDate: hireDate,
+        department: department,
+        position: position,
+        status: status
+      };
     });
 
     setEmployees(mockData);
@@ -449,8 +437,7 @@ const EmployeeInfo = () => {
     setCurrentEmployee(record);
 
     // 处理日期格式
-    const hireDateValue = record.hireDate ? dayjs(record.hireDate) : null;
-    const leaveDateValue = record.leaveDate ? dayjs(record.leaveDate) : null;
+    const joinDateValue = record.joinDate ? dayjs(record.joinDate) : null;
 
     form.setFieldsValue({
       id: record.id,
@@ -462,9 +449,7 @@ const EmployeeInfo = () => {
       email: record.email,
       city: record.city,
       address: record.address,
-      hireDate: hireDateValue,
-      leaveDate: leaveDateValue,
-      joinTimes: record.joinTimes,
+      joinDate: joinDateValue,
       department: record.department,
       position: record.position,
       status: record.status,
@@ -482,11 +467,8 @@ const EmployeeInfo = () => {
   const handleSubmit = () => {
     form.validateFields().then(values => {
       // 处理日期格式
-      if (values.hireDate) {
-        values.hireDate = values.hireDate.format('YYYY-MM-DD');
-      }
-      if (values.leaveDate) {
-        values.leaveDate = values.leaveDate.format('YYYY-MM-DD');
+      if (values.joinDate) {
+        values.joinDate = values.joinDate.format('YYYY-MM-DD');
       }
       if (currentEmployee) {
         // 编辑现有员工，按照指定的顺序排列字段
@@ -505,9 +487,7 @@ const EmployeeInfo = () => {
             updatedEmployee.email = values.email || employee.email;
             updatedEmployee.city = values.city || employee.city;
             updatedEmployee.address = values.address || employee.address;
-            updatedEmployee.hireDate = values.hireDate || employee.hireDate;
-            updatedEmployee.leaveDate = values.leaveDate || employee.leaveDate;
-            updatedEmployee.joinTimes = values.joinTimes !== undefined ? values.joinTimes : employee.joinTimes;
+            updatedEmployee.joinDate = values.joinDate || employee.joinDate;
             updatedEmployee.department = values.department || employee.department;
             updatedEmployee.position = values.position || employee.position;
             updatedEmployee.status = values.status || employee.status;
@@ -547,9 +527,7 @@ const EmployeeInfo = () => {
         newEmployee.email = values.email;
         newEmployee.city = values.city;
         newEmployee.address = values.address;
-        newEmployee.hireDate = values.hireDate;
-        newEmployee.leaveDate = values.leaveDate;
-        newEmployee.joinTimes = values.joinTimes;
+        newEmployee.joinDate = values.joinDate;
         newEmployee.department = values.department;
         newEmployee.position = values.position;
         newEmployee.status = values.status;
@@ -604,11 +582,8 @@ const EmployeeInfo = () => {
             'language',      // 语言
             'phone',         // 电话
             'email',         // 邮箱
-            'city',          // 城市
             'address',       // 地址
-            'hireDate',      // 加入时间
-            'leaveDate',     // 离开时间
-            'joinTimes',     // 加入次数
+            'joinDate',      // 加入时间
             'department',    // 部门
             'position',      // 职位
             'status'         // 状态
@@ -674,7 +649,7 @@ const EmployeeInfo = () => {
   // 处理删除
   const handleDelete = () => {
     // 从数据中删除员工
-    const updatedEmployees = employees.filter(employee => employee.key !== currentEmployee.key);
+    const updatedEmployees = employees.filter(employee => employee.id !== currentEmployee.id);
 
     // 显示删除动画和成功消息
     message.success({
@@ -747,7 +722,7 @@ const EmployeeInfo = () => {
           columns={columns}
           dataSource={filteredEmployees}
           rowKey="id"
-          rowClassName={(record) => record.key === editedRowKey ? 'edited-row' : ''}
+          rowClassName={(record) => record.id === editedRowKey ? 'edited-row' : ''}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -897,25 +872,13 @@ const EmployeeInfo = () => {
             </Form.Item>
 
             <Form.Item
-              name="hireDate"
-              label="入职日期"
+              name="joinDate"
+              label="加入时间"
             >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择入职日期" />
+              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择加入时间" />
             </Form.Item>
 
-            <Form.Item
-              name="leaveDate"
-              label="离职日期"
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择离职日期（可选）" />
-            </Form.Item>
 
-            <Form.Item
-              name="joinTimes"
-              label="加入次数"
-            >
-              <Input type="number" min={1} max={10} placeholder="请输入加入次数" />
-            </Form.Item>
 
             <Form.Item
               name="department"
