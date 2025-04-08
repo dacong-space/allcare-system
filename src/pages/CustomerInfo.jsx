@@ -220,7 +220,19 @@ const CustomerInfo = () => {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [editedRowKey, setEditedRowKey] = useState(null);
+  const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [form] = Form.useForm();
+
+  // 处理行展开/收起
+  const handleExpand = (expanded, record) => {
+    if (expanded) {
+      // 展开当前行，自动收起其他行
+      setExpandedRowKeys([record.id]);
+    } else {
+      // 收起当前行
+      setExpandedRowKeys([]);
+    }
+  };
 
   // 初始化客户数据
   useEffect(() => {
@@ -246,6 +258,7 @@ const CustomerInfo = () => {
     const statuses = ['active', 'inactive', 'pending'];
     const rnOptions = ['Erin', 'Anna', 'Shulin'];
     const pcaOptions = ['GZJ', 'ZQF', 'RB'];
+    const supportPlannerOptions = ['John Smith', 'Mary Johnson', 'David Lee', 'Sarah Wang', 'Michael Chen'];
 
     const customers = [];
 
@@ -272,6 +285,7 @@ const CustomerInfo = () => {
         preferredDates: ['Mon', 'Wed', 'Fri'].slice(0, Math.floor(Math.random() * 3) + 1),
         rn: rnOptions[Math.floor(Math.random() * rnOptions.length)],
         pca: pcaOptions[Math.floor(Math.random() * pcaOptions.length)],
+        supportPlanner: supportPlannerOptions[Math.floor(Math.random() * supportPlannerOptions.length)],
         lastVisitDate: Math.random() > 0.3 ? new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0] : null,
       };
 
@@ -495,6 +509,7 @@ const CustomerInfo = () => {
   const showAddModal = () => {
     setCurrentCustomer(null);
     form.resetFields();
+    setExpandedRowKeys([]);
 
     // 生成新的客户ID
     const maxId = customerData.length > 0
@@ -512,9 +527,13 @@ const CustomerInfo = () => {
   // 显示编辑客户模态框
   const handleEdit = (record) => {
     setCurrentCustomer(record);
+    setExpandedRowKeys([]);
 
     // 处理日期格式
     const joinDateValue = record.joinDate ? dayjs(record.joinDate) : null;
+
+    // 准备紧急联系人信息
+    const emergencyContact = record.emergencyContact || {};
 
     form.setFieldsValue({
       id: record.id,
@@ -534,7 +553,12 @@ const CustomerInfo = () => {
       preferredDates: record.preferredDates,
       rn: record.rn,
       pca: record.pca,
+      supportPlanner: record.supportPlanner,
       lastVisitDate: record.lastVisitDate ? dayjs(record.lastVisitDate) : null,
+      // 紧急联系人信息
+      emergencyContactName: emergencyContact.name || '',
+      emergencyContactRelationship: emergencyContact.relationship || '',
+      emergencyContactPhone: emergencyContact.phone || ''
     });
     setIsModalVisible(true);
   };
@@ -542,6 +566,7 @@ const CustomerInfo = () => {
   // 显示删除确认
   const showDeleteConfirm = (record) => {
     setCurrentCustomer(record);
+    setExpandedRowKeys([]);
     setIsDeleteModalVisible(true);
   };
 
@@ -566,6 +591,16 @@ const CustomerInfo = () => {
         const updatedCustomers = customerData.map(customer => {
           if (customer.id === currentCustomer.id) {
             // 创建新对象，按照指定的顺序添加字段
+            // 准备紧急联系人信息
+            let emergencyContact = null;
+            if (values.emergencyContactName || values.emergencyContactRelationship || values.emergencyContactPhone) {
+              emergencyContact = {
+                name: values.emergencyContactName,
+                relationship: values.emergencyContactRelationship,
+                phone: values.emergencyContactPhone
+              };
+            }
+
             const updatedCustomer = {
               ...customer,
               name: values.name,
@@ -581,7 +616,12 @@ const CustomerInfo = () => {
               joinCount: values.joinCount,
               status: values.status,
               points: values.points,
-              preferredDates: values.preferredDates
+              preferredDates: values.preferredDates,
+              rn: values.rn,
+              pca: values.pca,
+              supportPlanner: values.supportPlanner,
+              lastVisitDate: values.lastVisitDate,
+              emergencyContact: emergencyContact
             };
 
             return updatedCustomer;
@@ -619,7 +659,11 @@ const CustomerInfo = () => {
           joinCount: values.joinCount,
           status: values.status,
           points: values.points,
-          preferredDates: values.preferredDates
+          preferredDates: values.preferredDates,
+          rn: values.rn,
+          pca: values.pca,
+          supportPlanner: values.supportPlanner,
+          lastVisitDate: values.lastVisitDate
         };
 
         // 添加紧急联系人信息（如果有）
@@ -649,6 +693,7 @@ const CustomerInfo = () => {
       // 更新客户数量
       setCustomerCount(customerData.length + (currentCustomer ? 0 : 1));
       setIsModalVisible(false);
+      setExpandedRowKeys([]);
     });
   };
 
@@ -690,7 +735,11 @@ const CustomerInfo = () => {
             'joinCount',     // 第几次加入
             'status',        // 状态
             'points',        // 积分
-            'preferredDates' // 偏好日期
+            'preferredDates', // 偏好日期
+            'rn',            // RN
+            'pca',           // PCA
+            'supportPlanner', // Support Planner
+            'lastVisitDate'  // 最新家访日期
           ];
 
           // 获取所有存在的字段
@@ -765,6 +814,7 @@ const CustomerInfo = () => {
     setTimeout(() => {
       setCustomerData(updatedCustomers);
       setIsDeleteModalVisible(false);
+      setExpandedRowKeys([]);
       // 更新客户数量
       setCustomerCount(updatedCustomers.length);
     }, 300);
@@ -845,6 +895,11 @@ const CustomerInfo = () => {
               <UserOutlined className="icon" />
               <span className="label">PCA:</span>
               <span className="value">{record.pca || '无'}</span>
+            </DetailItem>
+            <DetailItem>
+              <UserOutlined className="icon" />
+              <span className="label">Support Planner:</span>
+              <span className="value">{record.supportPlanner || '无'}</span>
             </DetailItem>
             <DetailItem>
               <CalendarOutlined className="icon" />
@@ -964,9 +1019,13 @@ const CustomerInfo = () => {
         <Table
           columns={columns}
           dataSource={filteredCustomers}
+          rowKey="id"
           rowClassName={(record) => record.id === editedRowKey ? 'edited-row' : ''}
           expandable={{
             expandedRowRender,
+            expandedRowKeys: expandedRowKeys,
+            onExpand: handleExpand,
+            rowExpandable: () => true,
           }}
           pagination={{
             position: ['bottomCenter'],
@@ -1171,6 +1230,13 @@ const CustomerInfo = () => {
               label="PCA"
             >
               <Input placeholder="请输入PCA编号" />
+            </Form.Item>
+
+            <Form.Item
+              name="supportPlanner"
+              label="Support Planner"
+            >
+              <Input placeholder="请输入Support Planner" />
             </Form.Item>
 
             <Form.Item

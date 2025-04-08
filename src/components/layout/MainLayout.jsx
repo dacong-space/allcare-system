@@ -84,17 +84,23 @@ const Logo = styled.div`
   align-items: center;
   justify-content: center;
   color: var(--primary-color);
-  font-size: ${props => props.siderCollapsed ? '24px' : '18px'};
   font-weight: 600;
   letter-spacing: -0.5px;
   transition: all 0.3s;
   background: var(--sidebar-bg);
   border-bottom: 1px solid var(--border-color);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  padding: 0 ${props => props.siderCollapsed ? '16px' : '24px'};
+
+  img {
+    max-height: 32px;
+    max-width: ${props => props.siderCollapsed ? '48px' : '32px'};
+    object-fit: contain;
+  }
 
   .logo-text {
-    margin-left: ${props => props.siderCollapsed ? '0' : '12px'};
-    display: ${props => props.siderCollapsed ? 'none' : 'inline-block'};
+    margin-left: 12px;
+    font-size: 18px;
   }
 `;
 
@@ -274,7 +280,8 @@ const MainLayout = () => {
         }}
       >
         <Logo siderCollapsed={collapsed}>
-          {collapsed ? 'AC' : <><img src="/allcare-system/images/logo.jpg" alt="Logo" height="32" /> <span className="logo-text">AllCare</span></>}
+          <img src="/allcare-system/images/logo.jpg" alt="Logo" height="32" />
+          {!collapsed && <span className="logo-text">AllCare</span>}
         </Logo>
         <Menu
           theme={theme === 'dark' ? 'dark' : 'light'}
