@@ -274,7 +274,7 @@ const MainLayout = () => {
         }}
       >
         <Logo siderCollapsed={collapsed}>
-          {collapsed ? 'AC' : <><img src="./images/new-logo.svg" alt="Logo" height="32" /> <span className="logo-text">AllCare</span></>}
+          {collapsed ? 'AC' : <><img src="./images/logo.jpg" alt="Logo" height="32" /> <span className="logo-text">AllCare</span></>}
         </Logo>
         <Menu
           theme={theme === 'dark' ? 'dark' : 'light'}
