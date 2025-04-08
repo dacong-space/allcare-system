@@ -21,3 +21,18 @@ indexHtml = indexHtml.replace(
 
 fs.writeFileSync(indexHtmlPath, indexHtml);
 console.log(`index.html 中的版本号已更新到 ${timestamp}`);
+
+// 更新 version.js 文件中的时间戳
+const versionJsPath = path.join(__dirname, 'src', 'utils', 'version.js');
+if (fs.existsSync(versionJsPath)) {
+  let versionJs = fs.readFileSync(versionJsPath, 'utf8');
+
+  // 替换时间戳
+  versionJs = versionJs.replace(
+    /export const BUILD_TIMESTAMP = ['"](.*)['"];/,
+    `export const BUILD_TIMESTAMP = '${timestamp}';`
+  );
+
+  fs.writeFileSync(versionJsPath, versionJs);
+  console.log(`version.js 中的时间戳已更新到 ${timestamp}`);
+}

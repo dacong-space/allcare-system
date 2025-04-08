@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployeeCount, getCustomerCount } from '../services/dataService';
+import VersionInfo from '../components/VersionInfo';
 import {
   Card,
   Row,
@@ -493,6 +494,8 @@ const AboutUs = () => {
           ))}
         </Row>
       </StyledCard>
+
+      <VersionInfo />
     </PageContainer>
   );
 };
