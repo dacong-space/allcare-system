@@ -256,7 +256,6 @@ const CustomerInfo = () => {
       // 创建客户数据对象
       const customer = {
         id: id,
-        key: id,
         name: `客户${i + 1}`,
         gender: gender,
         age: Math.floor(Math.random() * 50) + 18,
@@ -267,7 +266,6 @@ const CustomerInfo = () => {
         address: `${cities[Math.floor(Math.random() * cities.length)]} Street ${Math.floor(Math.random() * 100) + 1}`,
         hours: hours[Math.floor(Math.random() * hours.length)],
         joinDate: new Date(2022, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
-        endDate: Math.random() > 0.7 ? new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0] : null,
         joinCount: Math.floor(Math.random() * 3) + 1,
         status: statuses[Math.floor(Math.random() * statuses.length)],
         points: Math.floor(Math.random() * 1000),
@@ -517,7 +515,6 @@ const CustomerInfo = () => {
 
     // 处理日期格式
     const joinDateValue = record.joinDate ? dayjs(record.joinDate) : null;
-    const endDateValue = record.endDate ? dayjs(record.endDate) : null;
 
     form.setFieldsValue({
       id: record.id,
@@ -531,7 +528,6 @@ const CustomerInfo = () => {
       address: record.address,
       hours: record.hours || '',
       joinDate: joinDateValue,
-      endDate: endDateValue,
       joinCount: record.joinCount,
       status: record.status,
       points: record.points,
@@ -555,9 +551,6 @@ const CustomerInfo = () => {
       // 处理日期格式
       if (values.joinDate) {
         values.joinDate = values.joinDate.format('YYYY-MM-DD');
-      }
-      if (values.endDate) {
-        values.endDate = values.endDate.format('YYYY-MM-DD');
       }
       if (values.lastVisitDate) {
         values.lastVisitDate = values.lastVisitDate.format('YYYY-MM-DD');
@@ -585,7 +578,6 @@ const CustomerInfo = () => {
               address: values.address,
               hours: values.hours,
               joinDate: values.joinDate,
-              endDate: values.endDate,
               joinCount: values.joinCount,
               status: values.status,
               points: values.points,
@@ -614,7 +606,6 @@ const CustomerInfo = () => {
         // 添加新客户
         const newCustomer = {
           id: values.id,
-          key: values.id,
           name: values.name,
           age: values.age,
           gender: values.gender,
@@ -625,7 +616,6 @@ const CustomerInfo = () => {
           address: values.address,
           hours: values.hours,
           joinDate: values.joinDate,
-          endDate: values.endDate,
           joinCount: values.joinCount,
           status: values.status,
           points: values.points,
@@ -697,7 +687,6 @@ const CustomerInfo = () => {
             'address',       // 地址
             'hours',         // 工时
             'joinDate',      // 加入时间
-            'endDate',       // 结束时间
             'joinCount',     // 第几次加入
             'status',        // 状态
             'points',        // 积分
@@ -1127,13 +1116,6 @@ const CustomerInfo = () => {
               label="加入时间"
             >
               <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择加入时间" />
-            </Form.Item>
-
-            <Form.Item
-              name="endDate"
-              label="结束时间"
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择结束时间（可选）" />
             </Form.Item>
 
             <Form.Item
