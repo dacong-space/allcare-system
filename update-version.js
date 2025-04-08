@@ -1,6 +1,10 @@
 // update-version.js
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 生成时间戳作为版本号
 const timestamp = new Date().getTime();
