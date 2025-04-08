@@ -10,7 +10,10 @@ export default defineConfig({
   plugins: [react()],
   base: '/allcare-system/',
   define: {
-    'import.meta.env.APP_VERSION': JSON.stringify(packageJson.version)
+    // 确保版本号正确注入
+    'import.meta.env.APP_VERSION': JSON.stringify(packageJson.version),
+    // 添加一个构建时间戳，用于强制浏览器刷新缓存
+    'import.meta.env.BUILD_TIME': JSON.stringify(new Date().toISOString())
   },
   build: {
     // 生成内容哈希的文件名
