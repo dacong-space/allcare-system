@@ -1,5 +1,5 @@
-// 从 package.json 中获取版本号
-export const APP_VERSION = '1.0.0';
+// 从环境变量中获取版本号
+export const APP_VERSION = import.meta.env.APP_VERSION || '0.0.1';
 
 // 获取构建时间戳
 // 这个值会在构建时被替换为实际的时间戳
@@ -10,7 +10,7 @@ export const formatBuildDate = (timestamp) => {
   if (!timestamp || timestamp === '__BUILD_TIMESTAMP__') {
     return '开发环境';
   }
-  
+
   try {
     const date = new Date(parseInt(timestamp));
     return date.toLocaleString();
