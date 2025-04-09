@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Form, Input, Button, message, Checkbox, Tooltip } from 'antd';
 import { EyeOutlined, EyeInvisibleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
@@ -13,7 +13,7 @@ const LoginContainer = styled.div`
   display: flex;
   height: 100vh;
   width: 100vw; /* 确保宽度占满整个视口 */
-  background-color: #f8f9fa;
+  background-color: white;
   overflow: hidden;
   margin: 0; /* 移除可能的外边距 */
   padding: 0; /* 移除可能的内边距 */
@@ -71,77 +71,125 @@ const LoginFormSection = styled.div`
 const LoginForm = styled.div`
   width: 100%;
   max-width: 400px;
+
+  @media (max-width: 576px) {
+    max-width: 90%;
+  }
 `;
 
 const LoginHeader = styled.div`
-  margin-bottom: 30px;
+  margin-bottom: 36px;
   text-align: left;
   width: 100%;
 `;
 
 const WelcomeTitle = styled.h1`
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 38px;
+  font-weight: 800;
   color: #1a1a1a;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+
+  @media (max-width: 576px) {
+    font-size: 32px;
+  }
 `;
 
 const WelcomeSubtitle = styled.p`
   font-size: 16px;
-  color: #555; /* 增强对比度，使用更深的灰色 */
-  margin-bottom: 40px;
+  color: #94a3b8; /* 使用更浅的颜色，增强对比度 */
+  margin-bottom: 0;
+  font-weight: 400;
+  letter-spacing: 0.1px;
 `;
 
 const FormLabel = styled.div`
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
+  color: #4b5563;
+  margin-bottom: 6px;
+  letter-spacing: 0.2px;
+  transition: color 0.3s ease;
 `;
 
 const StyledForm = styled(Form)`
   .ant-form-item {
-    margin-bottom: 24px;
+    margin-bottom: 22px;
   }
 
   .ant-input-affix-wrapper {
-    padding: 14px 16px;
-    border-radius: 8px;
-    border: 1px solid #e8e8e8;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
     background-color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    height: 50px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    height: 48px;
 
     &:hover {
-      border-color: #4169e1;
-      box-shadow: 0 2px 8px rgba(65, 105, 225, 0.15);
+      border-color: #3e6c45;
+      box-shadow: 0 2px 4px rgba(62, 108, 69, 0.08);
     }
 
     &:focus, &-focused {
-      border-color: #4169e1;
-      box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.2);
+      border-color: #3e6c45;
+      box-shadow: 0 0 0 3px rgba(62, 108, 69, 0.1);
       outline: none;
+    }
+
+    // 移除底部边框
+    &::after {
+      display: none !important;
+    }
+
+    // 修复内部输入框样式
+    .ant-input {
+      height: 46px;
+      border: none;
+      box-shadow: none;
+
+      &:focus {
+        box-shadow: none;
+      }
+    }
+
+    // 修复密码图标位置
+    .ant-input-suffix {
+      margin-right: 10px;
     }
   }
 
   .ant-input {
-    font-size: 16px;
+    font-size: 15px;
+    height: 48px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+
+    &:hover {
+      border-color: #3e6c45;
+      box-shadow: 0 2px 4px rgba(62, 108, 69, 0.08);
+    }
 
     &:focus {
       box-shadow: none;
+      border-color: #3e6c45;
+      box-shadow: 0 0 0 3px rgba(62, 108, 69, 0.1);
+      outline: none;
     }
 
     &::placeholder {
-      color: #bbb;
+      color: #9ca3af;
+      font-size: 14px;
     }
   }
 
   .ant-btn {
-    height: 50px;
-    border-radius: 8px;
+    height: 48px;
+    border-radius: 6px;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 15px;
     transition: all 0.3s ease;
   }
 
@@ -151,6 +199,9 @@ const StyledForm = styled(Form)`
     margin-top: 10px;
     position: relative;
     overflow: hidden;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(62, 108, 69, 0.2);
+    transition: all 0.3s ease;
 
     &:hover {
       background: #3e6c45 !important; /* 保持相同的绿色 */
@@ -159,12 +210,14 @@ const StyledForm = styled(Form)`
     }
 
     &:active {
-      transform: translateY(0);
-      box-shadow: 0 2px 6px rgba(62, 108, 69, 0.3);
+      transform: translateY(1px);
+      box-shadow: 0 1px 3px rgba(62, 108, 69, 0.3);
+      background: #355c3b !important;
     }
 
     &:focus {
       background: #3e6c45 !important;
+      box-shadow: 0 0 0 3px rgba(62, 108, 69, 0.15), 0 2px 8px rgba(62, 108, 69, 0.2);
     }
   }
 
@@ -173,20 +226,36 @@ const StyledForm = styled(Form)`
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border: 1px solid #e8e8e8;
+    border: 1px solid #e5e7eb !important;
     color: #333;
     background: white;
+    outline: none !important;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
-      border-color: #ddd;
-      background: #f9f9f9;
+      border-color: #3e6c45 !important;
+      color: #3e6c45;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px rgba(62, 108, 69, 0.08);
     }
 
     &:active {
       transform: translateY(0);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      border-color: #2c4e32 !important;
+      color: #2c4e32;
+      box-shadow: 0 2px 6px rgba(62, 108, 69, 0.1);
+    }
+
+    &:focus {
+      border-color: #3e6c45 !important;
+      box-shadow: 0 0 0 2px rgba(62, 108, 69, 0.1) !important;
+    }
+
+    &::after {
+      display: none !important;
     }
 
     img {
@@ -196,17 +265,35 @@ const StyledForm = styled(Form)`
   }
 `;
 
-const ForgotPassword = styled.a`
-  color: #3051b5; /* 增强对比度，使用更深的蓝色 */
-  font-size: 14px;
-  font-weight: 500; /* 增加字重 */
+const ForgotPassword = styled.span`
+  color: #3e6c45;
+  font-size: 13px;
+  font-weight: 500;
   text-align: right;
   display: block;
   margin-bottom: 20px;
+  transition: all 0.2s ease;
+  position: relative;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: #3e6c45;
+    transition: width 0.3s ease;
+  }
 
   &:hover {
-    text-decoration: underline;
-    color: #1a3aa1; /* 悬停时使用更深的颜色 */
+    color: #2c4e32;
+
+    &::after {
+      width: 100%;
+    }
   }
 `;
 
@@ -230,6 +317,7 @@ const OrDivider = styled.div`
   font-size: 14px;
   margin: 20px 0;
   position: relative;
+  cursor: pointer; /* 添加鼠标指针样式，但不改变外观 */
 
   &:before, &:after {
     content: '';
@@ -259,17 +347,35 @@ const SocialButtonsContainer = styled.div`
 const SignUpText = styled.div`
   text-align: center;
   margin-top: 30px;
-  font-size: 14px;
-  color: #555; /* 增强对比度，使用更深的灰色 */
+  font-size: 13px;
+  color: #4a5568;
+  letter-spacing: 0.3px;
 
-  a {
-    color: #3051b5; /* 与忘记密码链接保持一致 */
+  span {
+    color: #3e6c45;
     font-weight: 500;
     margin-left: 5px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 1px;
+      bottom: -2px;
+      left: 0;
+      background-color: #3e6c45;
+      transition: width 0.3s ease;
+    }
 
     &:hover {
-      text-decoration: underline;
-      color: #1a3aa1; /* 悬停时使用更深的颜色 */
+      color: #2c4e32;
+
+      &::after {
+        width: 100%;
+      }
     }
   }
 `;
@@ -280,7 +386,6 @@ const Login = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const { login, isAuthenticated, isLoading } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation();
 
   // 如果已经登录，始终重定向到首页
   useEffect(() => {
@@ -341,7 +446,7 @@ const Login = () => {
         <LoginForm>
           <LoginHeader>
             <WelcomeTitle>Welcome back!</WelcomeTitle>
-            <WelcomeSubtitle>Enter your Credentials to access your account</WelcomeSubtitle>
+            <WelcomeSubtitle>Let’s make today a good one.</WelcomeSubtitle>
           </LoginHeader>
 
           <StyledForm
@@ -350,20 +455,22 @@ const Login = () => {
             onFinish={handleLogin}
             layout="vertical"
             size="large"
+            className={loading ? 'login-form-loading' : ''}
           >
-            <FormLabel>Email address</FormLabel>
+            <FormLabel className="form-label">Email address</FormLabel>
             <Form.Item
               name="username"
               rules={[{ required: true, message: '请输入邮箱地址' }]}
             >
               <Input
                 placeholder="Enter your email"
+                style={{ height: '48px' }}
               />
             </Form.Item>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <FormLabel>Password</FormLabel>
-              <ForgotPassword href="#">Forgot password</ForgotPassword>
+              <FormLabel className="form-label">Password</FormLabel>
+              <ForgotPassword>Forgot password</ForgotPassword>
             </div>
 
             <Form.Item
@@ -374,6 +481,7 @@ const Login = () => {
                 placeholder="Enter your password"
                 visibilityToggle={{ visible: passwordVisible, onVisibleChange: togglePasswordVisibility }}
                 iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
+                style={{ height: '48px', paddingLeft: '16px' }}
               />
             </Form.Item>
 
@@ -383,10 +491,10 @@ const Login = () => {
               </div>
             )}
 
-            <RememberMeContainer>
+            <RememberMeContainer style={{ marginTop: '6px', marginBottom: '24px' }}>
               <Checkbox>Remember for 30 days</Checkbox>
-              <Tooltip title="系统将保存您的登录状态，30天内无需再次输入账号密码">
-                <QuestionCircleOutlined style={{ color: '#999', marginLeft: '8px', fontSize: '14px', cursor: 'pointer' }} />
+              <Tooltip title="系统将保存您的登录状态，30天内无需再次输入账号密码" color="#4b5563">
+                <QuestionCircleOutlined className="question-icon" style={{ color: '#9ca3af', marginLeft: '8px', fontSize: '14px', cursor: 'pointer', transition: 'all 0.3s ease' }} />
               </Tooltip>
             </RememberMeContainer>
 
@@ -403,29 +511,29 @@ const Login = () => {
               </Button>
             </Form.Item>
 
-            <OrDivider>Or</OrDivider>
+            <OrDivider onClick={() => {
+              const userData = {
+                id: 1,
+                username: 'admin',
+                name: 'Admin User',
+                role: 'admin',
+              };
+              const token = 'mock-jwt-token';
+              login(userData, token);
+              message.success('登录成功！');
+              navigate('/');
+            }}>Or</OrDivider>
 
             <SocialButtonsContainer>
               <Button
                 className="social-button"
                 style={{ flex: 1 }}
                 onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => {
-                    const userData = {
-                      id: 1,
-                      username: 'google-user',
-                      name: 'Google User',
-                      role: 'user',
-                    };
-                    const token = 'mock-jwt-token';
-                    login(userData, token);
-                    message.success('登录成功！');
-                    navigate('/');
-                    setLoading(false);
-                  }, 800);
+                  message.info('该功能尚未实现');
                 }}
                 disabled={loading}
+                ghost={false}
+                type="default"
               >
                 <img src={googleIcon} alt="Google" />
                 Sign in with Google
@@ -437,22 +545,11 @@ const Login = () => {
                 className="social-button"
                 style={{ flex: 1 }}
                 onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => {
-                    const userData = {
-                      id: 1,
-                      username: 'apple-user',
-                      name: 'Apple User',
-                      role: 'user',
-                    };
-                    const token = 'mock-jwt-token';
-                    login(userData, token);
-                    message.success('登录成功！');
-                    navigate('/');
-                    setLoading(false);
-                  }, 800);
+                  message.info('该功能尚未实现');
                 }}
                 disabled={loading}
+                ghost={false}
+                type="default"
               >
                 <img src={appleIcon} alt="Apple" />
                 Sign in with Apple
@@ -460,30 +557,35 @@ const Login = () => {
             </SocialButtonsContainer>
 
             <SignUpText>
-              Don't have an account? <a href="#">Sign Up</a>
+              Don't have an account? <span>Sign Up</span>
             </SignUpText>
 
-            {/* 跳过登录按钮 - 仅用于开发测试 */}
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => {
-                  const userData = {
-                    id: 1,
-                    username: 'admin',
-                    name: 'Admin User',
-                    role: 'admin',
-                  };
-                  const token = 'mock-jwt-token';
-                  login(userData, token);
-                  message.success('跳过登录成功！');
-                  navigate('/');
-                }}
-                style={{ fontSize: '12px', color: '#999' }}
-              >
-                跳过登录(仅用于测试)
-              </Button>
+            <div style={{
+              margin: '20px auto',
+              width: '100%',
+              height: '1px',
+              background: '#e8e8e8',
+              maxWidth: '200px'
+            }}></div>
+
+
+
+            {/* 版权信息 */}
+            <div style={{
+              marginTop: '30px',
+              textAlign: 'center',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '10px',
+              color: '#6b7280',
+              padding: '10px 0'
+            }}>
+              <div style={{ lineHeight: '1.5' }}>Copyright © 2025 Allcare Health Care, LLC</div>
+              <div style={{ color: '#9ca3af', marginTop: '4px', lineHeight: '1.5' }}>
+                Designed and developed by
+              </div>
+              <div style={{ color: '#9ca3af', lineHeight: '1.5', fontStyle: 'italic' }}>
+                Rui Gao
+              </div>
             </div>
           </StyledForm>
         </LoginForm>

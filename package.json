@@ -1,7 +1,7 @@
 {
   "name": "allcare-system",
   "private": true,
-  "version": "1.1.4",
+  "version": "1.1.5",
   "type": "module",
   "homepage": "https://dacong-space.github.io/allcare-system",
   "scripts": {

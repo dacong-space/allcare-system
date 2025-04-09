@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Breadcrumb } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, Breadcrumb, Typography } from 'antd';
 import './MenuAnimation.css';
 import {
   MenuUnfoldOutlined,
@@ -13,14 +13,16 @@ import {
   MedicineBoxOutlined,
   InfoCircleOutlined,
   BellOutlined,
-  SettingOutlined
+  SettingOutlined,
+  BarChartOutlined
 } from '@ant-design/icons';
 import styled from 'styled-components';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { ThemeContext } from '../../context/ThemeContext';
 
-const { Header, Sider, Content } = Layout;
+const { Header, Sider, Content, Footer } = Layout;
+const { Text } = Typography;
 
 // 样式组件
 const StyledLayout = styled(Layout)`
@@ -68,12 +70,13 @@ const StyledContent = styled(Content)`
   margin-left: ${props => props.siderCollapsed ? '80px' : '200px'};
   padding: 84px 24px 24px;
   background-color: var(--bg-primary);
-  min-height: 100vh;
+  min-height: calc(100vh - 64px); /* 减去头部的高度 */
   transition: all 0.3s;
   width: auto;
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   animation: fadeIn 0.5s ease-in-out;
+  overflow: auto;
 
   @keyframes fadeIn {
     from {
@@ -207,6 +210,26 @@ const ThemeToggle = styled.div`
   }
 `;
 
+const StyledFooter = styled(Footer)`
+  text-align: center;
+  background: #f5f5f5;
+  color: var(--text-secondary);
+  padding: 20px 50px;
+  margin-top: 40px;
+  font-size: 14px;
+  border-top: 1px solid var(--border-color);
+  margin-left: 0;
+  transition: all 0.3s;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  width: auto;
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+    padding: 20px 24px;
+  }
+`;
+
 // 已将折叠按钮移动到菜单中
 
 // 菜单配置
@@ -235,12 +258,17 @@ const menuItems = [
     label: '员工信息',
     path: '/employee-info'
   },
-
   {
     key: 'documentCenter',
     icon: <FileTextOutlined />,
     label: '文档中心',
     path: '/document-center'
+  },
+  {
+    key: 'reports',
+    icon: <BarChartOutlined />,
+    label: '数据报表',
+    path: '/reports'
   },
   {
     key: 'about',
@@ -257,6 +285,7 @@ const pathMap = {
   '/customer-info': ['首页', '客户信息'],
   '/employee-info': ['首页', '员工信息'],
   '/document-center': ['首页', '文档中心'],
+  '/reports': ['首页', '数据报表'],
   '/about-us': ['首页', '关于我们']
 };
 
@@ -278,6 +307,7 @@ const MainLayout = () => {
     if (path === '/customer-info') return 'customer';
     if (path === '/employee-info') return 'employee';
     if (path === '/about-us') return 'about';
+    if (path === '/reports') return 'reports';
     const item = menuItems.find(item => item.path === path);
     return item ? item.key : '';
   };
@@ -319,7 +349,7 @@ const MainLayout = () => {
         collapsed={collapsed}
         width={200}
         style={{
-          overflow: 'hidden',
+          overflow: 'auto',
           height: '100vh',
           position: 'fixed',
           left: 0,
@@ -331,32 +361,63 @@ const MainLayout = () => {
           background: 'var(--sidebar-bg)',
           boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)'
         }}
+        children={
+          <>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <Logo siderCollapsed={collapsed}>
+                <img src="/allcare-system/images/logo.jpg" alt="Logo" />
+                {!collapsed && <span className="logo-text">Allcare</span>}
+              </Logo>
+            </Link>
+            <Menu
+              theme={theme === 'dark' ? 'dark' : 'light'}
+              mode="inline"
+              selectedKeys={[getSelectedKey(location.pathname)]}
+              style={{
+                background: 'var(--sidebar-bg)',
+                color: '#ffffff',
+                borderRight: 'none',
+                flex: '1 0 auto',
+                overflow: 'auto',
+                marginTop: '8px',
+                marginBottom: collapsed ? '0' : '75px'
+              }}
+              className="sidebar-menu"
+              items={menuItems.map(item => ({
+                key: item.key,
+                icon: item.icon,
+                label: item.path ? <Link to={item.path}>{item.label}</Link> : item.label
+              }))}
+            />
+            <div style={{
+              padding: '12px 8px',
+              textAlign: 'center',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '11px',
+              color: '#333333',
+              borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+              background: 'var(--sidebar-bg)',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              minHeight: '75px',
+              display: collapsed ? 'none' : 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              zIndex: 1002
+            }}>
+              <div style={{ lineHeight: '1.5' }}>Copyright © 2025 Allcare Health Care, LLC</div>
+              <div style={{ color: '#666666', marginTop: '4px', lineHeight: '1.5' }}>
+                Designed and developed by
+              </div>
+              <div style={{ color: '#666666', lineHeight: '1.5', fontStyle: 'italic' }}>
+                Rui Gao
+              </div>
+            </div>
+          </>
+        }
       >
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <Logo siderCollapsed={collapsed}>
-            <img src="/allcare-system/images/logo.jpg" alt="Logo" />
-            {!collapsed && <span className="logo-text">Allcare</span>}
-          </Logo>
-        </Link>
-        <Menu
-          theme={theme === 'dark' ? 'dark' : 'light'}
-          mode="inline"
-          selectedKeys={[getSelectedKey(location.pathname)]}
-          style={{
-            background: 'var(--sidebar-bg)',
-            color: '#ffffff',
-            borderRight: 'none',
-            flex: 1,
-            overflow: 'auto',
-            marginTop: '8px'
-          }}
-          className="sidebar-menu"
-          items={menuItems.map(item => ({
-            key: item.key,
-            icon: item.icon,
-            label: item.path ? <Link to={item.path}>{item.label}</Link> : item.label
-          }))}
-        />
       </Sider>
 
       <Layout>

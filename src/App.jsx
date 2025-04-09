@@ -8,11 +8,13 @@ import zhCN from 'antd/locale/zh_CN';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
+import NewHome from './pages/NewHome';
 import NotFound from './pages/NotFound';
 import DocumentCenter from './pages/DocumentCenter';
 import CustomerInfo from './pages/CustomerInfo';
 import EmployeeInfo from './pages/EmployeeInfo';
 import AboutUs from './pages/AboutUs';
+import Reports from './pages/Reports';
 
 // 导入布局组件
 import MainLayout from './components/layout/MainLayout';
@@ -67,12 +69,13 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<NewHome />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/document-center" element={<DocumentCenter />} />
           <Route path="/customer-info" element={<CustomerInfo />} />
           <Route path="/employee-info" element={<EmployeeInfo />} />
           <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/reports" element={<Reports />} />
           {/* 其他页面可以在这里添加 */}
         </Route>
 
