@@ -1,7 +1,7 @@
 {
   "name": "allcare-system",
   "private": true,
-  "version": "1.1.3",
+  "version": "1.1.4",
   "type": "module",
   "homepage": "https://dacong-space.github.io/allcare-system",
   "scripts": {
@@ -22,6 +22,8 @@
     "moment": "^2.30.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "react-quill": "^2.0.0",
     "react-router-dom": "^7.5.0",
     "styled-components": "^6.1.17"
   },

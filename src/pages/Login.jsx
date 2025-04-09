@@ -1,5 +1,6 @@
-import { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useContext, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import { Form, Input, Button, message, Checkbox, Tooltip } from 'antd';
 import { EyeOutlined, EyeInvisibleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import googleIcon from '../assets/icons/google.svg';
@@ -277,8 +278,18 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated, isLoading } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // 如果已经登录，始终重定向到首页
+  useEffect(() => {
+    // 只有在认证状态加载完成后才进行重定向
+    if (!isLoading && isAuthenticated) {
+      // 始终重定向到首页，不考虑之前的路径
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   // 模拟登录
   const handleLogin = (values) => {
@@ -299,7 +310,8 @@ const Login = () => {
 
         login(userData, token);
         message.success('登录成功！');
-        navigate('/');
+        // 始终导航到首页
+        navigate('/', { replace: true });
       } catch (error) {
         setLoginError('登录失败，请检查您的用户名和密码');
         message.error('登录失败，请检查您的用户名和密码');
@@ -313,6 +325,11 @@ const Login = () => {
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+
+  // 如果还在加载中，不显示任何内容
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <LoginContainer>

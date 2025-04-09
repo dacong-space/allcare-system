@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dayjs from 'dayjs';
 import { setEmployeeCount } from '../services/dataService';
+import ModernExpandButton from '../components/ModernExpandButton';
 import {
   Card,
   Table,
@@ -15,8 +16,12 @@ import {
   Avatar,
   Tooltip,
   Dropdown,
-  DatePicker
+  DatePicker,
+  Row,
+  Col,
+  Typography
 } from 'antd';
+const { Title } = Typography;
 import {
   SearchOutlined,
   UserAddOutlined,
@@ -28,9 +33,13 @@ import {
   DownloadOutlined,
   FileOutlined,
   FileExcelOutlined,
-  CodeOutlined
+  CodeOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  EnvironmentOutlined
 } from '@ant-design/icons';
 import { MinimalistManIcon, MinimalistWomanIcon } from '../components/CustomIcons';
+// import ScrollIndicator from '../components/ScrollIndicator';
 import styled from 'styled-components';
 
 // 样式组件
@@ -153,8 +162,56 @@ const StatusTag = styled(Tag)`
   }
 
   &.onleave {
-    background: #fef3c7;
-    color: #d97706;
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+`;
+
+const EmployeeDetailCard = styled(Card)`
+  border-radius: 8px;
+  margin-bottom: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+
+  .ant-card-body {
+    padding: 16px 20px;
+  }
+
+  h5 {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+    display: block;
+    text-align: left;
+  }
+`;
+
+const DetailItem = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+
+  .icon {
+    margin-right: 10px;
+    color: var(--primary-color);
+    font-size: 14px;
+  }
+
+  .label {
+    color: var(--text-secondary);
+    margin-right: 8px;
+    font-size: 14px;
+    min-width: 70px;
+  }
+
+  .value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 14px;
+  }
   }
 `;
 
@@ -177,20 +234,26 @@ const EmployeeInfo = () => {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [editedRowKey, setEditedRowKey] = useState(null);
+  const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [form] = Form.useForm();
+  const notesContainerRefs = useRef({});
+
+
 
   // 初始化员工数据
   useEffect(() => {
     // 生成30个员工数据
-    const departments = ['内科', '外科', '儿科', '妇产科', '急诊科', '护理部', '药剂科', '检验科', '放射科', '麻醉科'];
-    const positions = ['主任医师', '副主任医师', '主治医师', '住院医师', '护士长', '护士', '药剂师', '检验师', '技师', '行政人员'];
+    // 所有员工的职位都是PCA
     const statuses = ['active', 'inactive', 'onleave'];
-    const cities = ['北京', '上海', '广州', '深圳', '成都', '杭州', '南京', '武汉', '西安', '重庆'];
+    // Maryland州的城市
+    const marylandCities = ['Baltimore', 'Annapolis', 'Frederick', 'Rockville', 'Gaithersburg', 'Bethesda', 'Silver Spring', 'Columbia', 'Germantown', 'Waldorf'];
+    // Maryland州的街道名称
+    const streetNames = ['Main St', 'Oak Ave', 'Maple Dr', 'Washington Blvd', 'Park Ln', 'Cedar Rd', 'Pine St', 'Elm St', 'River Rd', 'Church St'];
 
-    // 生成随机日期
+    // 生成随机日期，在2024年8月1日到今天之间
     const getRandomDate = () => {
-      const start = new Date(2015, 0, 1);
-      const end = new Date();
+      const start = new Date(2024, 7, 1); // 2024年8月1日
+      const end = new Date(); // 今天
       const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     };
@@ -202,28 +265,107 @@ const EmployeeInfo = () => {
 
 
     // 生成随机语言
-    const languages = ['中文', '英语', '法语', '德语', '日语'];
+    const languageOptions = ['中文', '粤语', '福州话', '英语', '西班牙语', '法语'];
 
     // 生成30个员工数据
-    const mockData = Array.from({ length: 30 }, (_, i) => {
+    // 首先添加固定的员工数据
+    const fixedEmployees = [
+      {
+        "id": "CEO",
+        "name": "高睿",
+        "age": 30,
+        "gender": "男",
+        "language": ["中文", "英文"],
+        "phone": "(301)-666-8888",
+        "email": "bos666@allcarehealthcare.com",
+        "address": "666 test, Potomac, MD",
+        "joinDate": "2024-08-06",
+        "position": "CEO",
+        "status": "active",
+        "notes": "高总牛逼666666666666666666666"
+      },
+      {
+        "id": "RN001",
+        "name": "谢涵雨",
+        "age": 29,
+        "gender": "女",
+        "language": ["中文", "英文"],
+        "phone": "(301)-888-6666",
+        "email": "RN666@allcarehealthcare.com",
+        "address": "666 test, Potomac, MD",
+        "joinDate": "2024-08-08",
+        "position": "RN",
+        "status": "active",
+        "notes": ""
+      },
+      {
+        "id": "RN002",
+        "name": "宋书林",
+        "age": 29,
+        "gender": "女",
+        "language": ["中文", "英文"],
+        "phone": "(301)-234-7890",
+        "email": "RN002@allcarehealthcare.com",
+        "address": "123 test, Germantown, MD",
+        "joinDate": "2025-04-01",
+        "position": "RN",
+        "status": "active",
+        "notes": ""
+      }
+    ];
+
+    // 然后生成随机的员工数据
+    const randomEmployees = Array.from({ length: 27 }, (_, i) => {
       const id = `EMP${String(i + 1).padStart(3, '0')}`;
       const gender = Math.random() > 0.5 ? '男' : '女';
       const age = getRandomAge();
-      const language = languages[Math.floor(Math.random() * languages.length)];
-      const department = departments[Math.floor(Math.random() * departments.length)];
-      const position = positions[Math.floor(Math.random() * positions.length)];
+      // 生成随机语言（多选）
+      const languageCount = Math.floor(Math.random() * 3) + 1; // 每个员工会说 1-3 种语言
+      const language = [];
+
+      // 确保不重复选择语言
+      const availableLanguages = [...languageOptions];
+      for (let j = 0; j < languageCount; j++) {
+        if (availableLanguages.length === 0) break;
+        const index = Math.floor(Math.random() * availableLanguages.length);
+        language.push(availableLanguages[index]);
+        availableLanguages.splice(index, 1);
+      }
+
+      // 所有员工的职位都是PCA
+      const position = 'PCA';
       const status = statuses[Math.floor(Math.random() * statuses.length)];
-      const city = cities[Math.floor(Math.random() * cities.length)];
       const hireDate = getRandomDate();
 
+      // 生成随机中文姓名
+      const familyNames = ['张', '李', '王', '赵', '钱', '孙', '周', '吴', '郑', '陈',
+                         '陆', '汪', '冯', '许', '何', '刘', '杨', '黄', '林', '高'];
+      const givenNames = ['伟', '娟', '浩', '涛', '文', '斌', '海', '明', '刚', '强',
+                        '宁', '平', '健', '雅', '杰', '娜', '欣', '欣', '正', '志',
+                        '建', '国', '洋', '洋', '洋', '洋', '洋', '洋', '洋', '洋',
+                        '晨', '晨', '晨', '晨', '晨', '晨', '晨', '晨', '晨', '晨'];
 
-      // 生成姓名
-      const name = ['张', '李', '王', '赵', '钱', '孙', '周', '吴', '郑', '陈'][i % 10] +
-                  ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'][Math.floor(i / 10)] +
-                  (gender === '男' ? '男' : '女');
+      const familyName = familyNames[Math.floor(Math.random() * familyNames.length)];
 
-      // 生成地址
-      const address = Math.random() > 0.3 ? `${city}市${['东', '西', '南', '北', '中'][Math.floor(Math.random() * 5)]}区` : '';
+      // 随机决定是单字名还是双字名
+      let givenName;
+      if (Math.random() > 0.5) {
+        // 单字名
+        givenName = givenNames[Math.floor(Math.random() * givenNames.length)];
+      } else {
+        // 双字名
+        const firstName = givenNames[Math.floor(Math.random() * givenNames.length)];
+        const secondName = givenNames[Math.floor(Math.random() * givenNames.length)];
+        givenName = firstName + secondName;
+      }
+
+      const name = familyName + givenName;
+
+      // 生成Maryland州的地址
+      const city = marylandCities[Math.floor(Math.random() * marylandCities.length)];
+      const streetName = streetNames[Math.floor(Math.random() * streetNames.length)];
+      const houseNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+      const address = `${houseNumber} ${streetName}, ${city}, MD`;
 
       // 创建员工数据对象，按照指定的顺序排列字段
       // 按照要求的数据结构：{ID，姓名，年龄，性别，语言，电话，邮箱，地址，加入时间，部门，职位，status}
@@ -237,15 +379,19 @@ const EmployeeInfo = () => {
         email: `employee${i + 1}@example.com`,
         address: address,
         joinDate: hireDate,
-        department: department,
+
         position: position,
-        status: status
+        status: status,
+        notes: ''
       };
     });
 
-    setEmployees(mockData);
+    // 合并固定员工数据和随机员工数据
+    const allEmployees = [...fixedEmployees, ...randomEmployees];
+
+    setEmployees(allEmployees);
     // 更新员工数量
-    setEmployeeCount(mockData.length);
+    setEmployeeCount(allEmployees.length);
   }, []);
 
   // 表格列定义
@@ -279,10 +425,27 @@ const EmployeeInfo = () => {
       width: 80,
     },
     {
-      title: '部门',
-      dataIndex: 'department',
-      key: 'department',
-      width: 140,
+      title: '语言',
+      dataIndex: 'language',
+      key: 'language',
+      width: 100,
+      render: (languages) => {
+        if (Array.isArray(languages) && languages.length > 0) {
+          if (languages.length === 1) {
+            return languages[0];
+          } else {
+            // 如果有多种语言，显示第一种，并在悬停时显示所有语言
+            return (
+              <Tooltip title={languages.join(', ')}>
+                <span style={{ cursor: 'pointer' }}>
+                  {languages[0]} <small style={{ color: '#999', fontSize: '12px', verticalAlign: 'middle' }}>..</small>
+                </span>
+              </Tooltip>
+            );
+          }
+        }
+        return '-';
+      },
     },
     {
       title: '职位',
@@ -290,12 +453,7 @@ const EmployeeInfo = () => {
       key: 'position',
       width: 140,
     },
-    {
-      title: '地点',
-      dataIndex: 'city',
-      key: 'city',
-      width: 100,
-    },
+
     {
       title: '联系方式',
       key: 'contact',
@@ -382,7 +540,7 @@ const EmployeeInfo = () => {
     const filtered = employees.filter(employee =>
       employee.name.toLowerCase().includes(value.toLowerCase()) ||
       employee.id.includes(value) ||
-      employee.department.toLowerCase().includes(value.toLowerCase()) ||
+
       employee.position.toLowerCase().includes(value.toLowerCase()) ||
       employee.email.toLowerCase().includes(value.toLowerCase()) ||
       employee.phone.includes(value)
@@ -403,12 +561,28 @@ const EmployeeInfo = () => {
     }
   };
 
+  // 获取状态标签
+  const getStatusTag = (status) => {
+    let color = 'active';
+    let text = '在职';
+
+    if (status === 'inactive') {
+      color = 'inactive';
+      text = '离职';
+    } else if (status === 'onleave') {
+      color = 'onleave';
+      text = '休假';
+    }
+
+    return <StatusTag className={color}>{text}</StatusTag>;
+  };
+
   // 过滤员工数据
   const filteredEmployees = employees.filter(employee =>
     searchText === '' ||
     employee.name.toLowerCase().includes(searchText.toLowerCase()) ||
     employee.id.includes(searchText) ||
-    employee.department.toLowerCase().includes(searchText.toLowerCase()) ||
+
     employee.position.toLowerCase().includes(searchText.toLowerCase()) ||
     employee.email.toLowerCase().includes(searchText.toLowerCase()) ||
     employee.phone.includes(searchText)
@@ -419,14 +593,9 @@ const EmployeeInfo = () => {
     setCurrentEmployee(null);
     form.resetFields();
 
-    // 生成新的员工ID
-    const maxId = employees.length > 0
-      ? Math.max(...employees.map(emp => parseInt(emp.id.replace('EMP', ''))))
-      : 0;
-    const newId = `EMP${String(maxId + 1).padStart(3, '0')}`;
-
+    // 不预填员工ID
     form.setFieldsValue({
-      id: newId
+      id: ''
     });
 
     setIsModalVisible(true);
@@ -450,9 +619,9 @@ const EmployeeInfo = () => {
       city: record.city,
       address: record.address,
       joinDate: joinDateValue,
-      department: record.department,
       position: record.position,
       status: record.status,
+      notes: record.notes, // 添加备注字段的初始化
     });
     setIsModalVisible(true);
   };
@@ -488,9 +657,10 @@ const EmployeeInfo = () => {
             updatedEmployee.city = values.city || employee.city;
             updatedEmployee.address = values.address || employee.address;
             updatedEmployee.joinDate = values.joinDate || employee.joinDate;
-            updatedEmployee.department = values.department || employee.department;
+
             updatedEmployee.position = values.position || employee.position;
             updatedEmployee.status = values.status || employee.status;
+            updatedEmployee.notes = values.notes || employee.notes;
 
             return updatedEmployee;
           }
@@ -515,10 +685,20 @@ const EmployeeInfo = () => {
         const newEmployee = {};
 
         // 生成新的员工ID
-        const newId = values.id || `EMP${String(employees.length + 1).padStart(3, '0')}`;
+        let customId = values.id;
+        if (!customId || customId.trim() === '') {
+          // 如果用户没有输入ID，自动生成一个符合格式的ID
+          const maxId = employees.length > 0
+            ? Math.max(...employees.map(emp => {
+                const match = emp.id.match(/EMP(\d+)/);
+                return match ? parseInt(match[1]) : 0;
+              }))
+            : 0;
+          customId = `EMP${String(maxId + 1).padStart(3, '0')}+PCA`;
+        }
 
         // 按照指定的顺序添加字段
-        newEmployee.id = newId;
+        newEmployee.id = customId;
         newEmployee.name = values.name;
         newEmployee.age = values.age;
         newEmployee.gender = values.gender;
@@ -528,9 +708,10 @@ const EmployeeInfo = () => {
         newEmployee.city = values.city;
         newEmployee.address = values.address;
         newEmployee.joinDate = values.joinDate;
-        newEmployee.department = values.department;
+
         newEmployee.position = values.position;
         newEmployee.status = values.status;
+        newEmployee.notes = values.notes || ''; // 添加备注字段
 
         setEmployees([...employees, newEmployee]);
         setEditedRowKey(newEmployee.id);
@@ -584,7 +765,6 @@ const EmployeeInfo = () => {
             'email',         // 邮箱
             'address',       // 地址
             'joinDate',      // 加入时间
-            'department',    // 部门
             'position',      // 职位
             'status'         // 状态
           ];
@@ -723,6 +903,154 @@ const EmployeeInfo = () => {
           dataSource={filteredEmployees}
           rowKey="id"
           rowClassName={(record) => record.id === editedRowKey ? 'edited-row' : ''}
+          expandable={{
+            expandedRowKeys: expandedRowKeys,
+            onExpand: (expanded, record) => {
+              setExpandedRowKeys(expanded ? [record.id] : []);
+            },
+            expandIcon: ({ expanded, onExpand, record }) => (
+              <ModernExpandButton
+                expanded={expanded}
+                onClick={() => onExpand(record, !expanded)}
+              />
+            ),
+            expandedRowRender: (record) => {
+              return (
+                <EmployeeDetailCard>
+                  <Row gutter={[24, 16]}>
+                    {/* 第一行 */}
+                    <Col span={8}>
+                      <Title level={5}>基本信息</Title>
+                      <DetailItem>
+                        <UserOutlined className="icon" />
+                        <span className="label">ID:</span>
+                        <span className="value">{record.id}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <UserOutlined className="icon" />
+                        <span className="label">姓名:</span>
+                        <span className="value">{record.name}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <UserOutlined className="icon" />
+                        <span className="label">性别:</span>
+                        <span className="value">{record.gender}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <UserOutlined className="icon" />
+                        <span className="label">年龄:</span>
+                        <span className="value">{record.age}</span>
+                      </DetailItem>
+                    </Col>
+
+                    <Col span={8}>
+                      <Title level={5}>联系信息</Title>
+                      <DetailItem>
+                        <PhoneOutlined className="icon" />
+                        <span className="label">电话:</span>
+                        <span className="value">{record.phone}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <MailOutlined className="icon" />
+                        <span className="label">邮箱:</span>
+                        <span className="value">{record.email}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <UserOutlined className="icon" />
+                        <span className="label">语言:</span>
+                        <span className="value">
+                          {Array.isArray(record.language)
+                            ? record.language.join(', ')
+                            : record.language || '-'}
+                        </span>
+                      </DetailItem>
+                    </Col>
+
+                    <Col span={8}>
+                      <Title level={5}>工作信息</Title>
+                      <DetailItem>
+                        <CalendarOutlined className="icon" />
+                        <span className="label">入职日期:</span>
+                        <span className="value">{record.joinDate}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <UserOutlined className="icon" />
+                        <span className="label">职位:</span>
+                        <span className="value">{record.position}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <UserOutlined className="icon" />
+                        <span className="label">状态:</span>
+                        <span className="value">{getStatusTag(record.status)}</span>
+                      </DetailItem>
+                    </Col>
+
+                    {/* 第二行 */}
+                    <Col span={24}>
+                      <Title level={5}>地址信息</Title>
+                      <DetailItem>
+                        <EnvironmentOutlined className="icon" />
+                        <span className="label">地址:</span>
+                        <span className="value">{record.address || '-'}</span>
+                      </DetailItem>
+                    </Col>
+
+                    {/* 备注区域 */}
+                    <Col span={24} style={{ marginTop: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Title level={5} style={{ margin: 0, marginBottom: '8px' }}>备注</Title>
+                        {record.notes && (
+                          <span style={{
+                            fontSize: '0.7rem',
+                            color: 'rgba(0, 0, 0, 0.45)',
+                            marginLeft: '8px',
+                            marginBottom: '8px'
+                          }}>
+                            ({record.notes.split('\n').length}行备注)
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        ref={el => notesContainerRefs.current[record.id] = el}
+                        className="notes-display"
+                        style={{
+                          height: '100px',
+                          padding: '12px',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          background: 'var(--bg-secondary)',
+                          textAlign: 'left',
+                          overflowY: 'scroll', // 强制始终显示竖向滚动条
+                          scrollbarGutter: 'stable', // 保留滚动条空间，防止内容跳动
+                          resize: 'vertical',
+                          maxHeight: '300px',
+                          position: 'relative', // 添加相对定位以确保滚动条正确显示
+                          paddingRight: '15px' // 为滚动条留出空间
+                        }}
+                      >
+                        {record.notes ? (
+                          <div
+                            style={{
+                              whiteSpace: 'pre-wrap',
+                              textAlign: 'left',
+                              width: '100%',
+                              paddingRight: '10px', // 留出空间给滚动条
+                              minHeight: '80px' // 确保内容高度足够，使滚动条始终显示
+                            }}
+                          >
+                            {record.notes}
+                          </div>
+                        ) : (
+                          <p style={{ textAlign: 'left' }}>暂无备注</p>
+                        )}
+
+                      </div>
+                    </Col>
+                  </Row>
+                </EmployeeDetailCard>
+              );
+            }
+          }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
@@ -761,7 +1089,7 @@ const EmployeeInfo = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Form.Item
               name="id"
-              label="ID"
+              label="ID (职位代码+ID)"
               rules={[{ required: true, message: '请输入ID' }]}
             >
               <Input placeholder="请输入ID" disabled={!!currentEmployee} />
@@ -788,7 +1116,7 @@ const EmployeeInfo = () => {
               label="性别"
               rules={[{ required: true, message: '请选择性别' }]}
             >
-              <Select>
+              <Select placeholder="请选择性别">
                 <Select.Option value="男">男</Select.Option>
                 <Select.Option value="女">女</Select.Option>
               </Select>
@@ -799,12 +1127,17 @@ const EmployeeInfo = () => {
               label="语言"
               rules={[{ required: true, message: '请选择语言' }]}
             >
-              <Select>
+              <Select
+                mode="multiple"
+                placeholder="请选择语言"
+                style={{ width: '100%' }}
+              >
                 <Select.Option value="中文">中文</Select.Option>
+                <Select.Option value="粤语">粤语</Select.Option>
+                <Select.Option value="福州话">福州话</Select.Option>
                 <Select.Option value="英语">英语</Select.Option>
+                <Select.Option value="西班牙语">西班牙语</Select.Option>
                 <Select.Option value="法语">法语</Select.Option>
-                <Select.Option value="德语">德语</Select.Option>
-                <Select.Option value="日语">日语</Select.Option>
               </Select>
             </Form.Item>
 
@@ -880,13 +1213,6 @@ const EmployeeInfo = () => {
 
 
 
-            <Form.Item
-              name="department"
-              label="部门"
-              rules={[{ required: true, message: '请输入部门' }]}
-            >
-              <Input placeholder="请输入部门" />
-            </Form.Item>
 
             <Form.Item
               name="position"
@@ -915,6 +1241,16 @@ const EmployeeInfo = () => {
           >
             <Input.TextArea rows={2} placeholder="请输入地址" />
           </Form.Item>
+
+          <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+            <h3 style={{ marginBottom: '16px' }}>备注信息</h3>
+            <Form.Item
+              name="notes"
+              label="备注"
+            >
+              <Input.TextArea rows={4} placeholder="请输入备注信息" />
+            </Form.Item>
+          </div>
         </Form>
       </Modal>
 

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dayjs from 'dayjs';
 import { setCustomerCount } from '../services/dataService';
+import ModernExpandButton from '../components/ModernExpandButton';
 import {
   Card,
   Table,
@@ -17,7 +18,8 @@ import {
   Form,
   Select,
   message,
-  DatePicker
+  DatePicker,
+  Tooltip
 } from 'antd';
 import {
   SearchOutlined,
@@ -36,6 +38,7 @@ import {
   CodeOutlined
 } from '@ant-design/icons';
 import { MinimalistManIcon, MinimalistWomanIcon } from '../components/CustomIcons';
+// import ScrollIndicator from '../components/ScrollIndicator';
 import styled from 'styled-components';
 
 const { Title } = Typography;
@@ -222,6 +225,7 @@ const CustomerInfo = () => {
   const [editedRowKey, setEditedRowKey] = useState(null);
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [form] = Form.useForm();
+  const notesContainerRefs = useRef({});
 
   // 处理行展开/收起
   const handleExpand = (expanded, record) => {
@@ -248,7 +252,7 @@ const CustomerInfo = () => {
     // Maryland城市
     const marylandCities = ['Baltimore', 'Annapolis', 'Frederick', 'Rockville', 'Gaithersburg', 'Bethesda', 'Silver Spring', 'Columbia', 'Germantown', 'Waldorf'];
 
-    const languages = ['中文', '英语', '法语', '德语', '日语'];
+    const languageOptions = ['中文', '粤语', '福州话', '英语', '西班牙语', '法语'];
     const hours = ['20', '30', '40', '25', '35'];
     const statuses = ['active', 'inactive', 'pending'];
     const rnOptions = ['Erin', 'Anna', 'Shulin'];
@@ -295,7 +299,21 @@ const CustomerInfo = () => {
         name: name,
         gender: gender,
         age: Math.floor(Math.random() * 50) + 18,
-        language: languages[Math.floor(Math.random() * languages.length)],
+        language: (() => {
+          // 生成随机语言（多选）
+          const languageCount = Math.floor(Math.random() * 3) + 1; // 每个客户会说 1-3 种语言
+          const language = [];
+
+          // 确保不重复选择语言
+          const availableLanguages = [...languageOptions];
+          for (let j = 0; j < languageCount; j++) {
+            if (availableLanguages.length === 0) break;
+            const index = Math.floor(Math.random() * availableLanguages.length);
+            language.push(availableLanguages[index]);
+            availableLanguages.splice(index, 1);
+          }
+          return language;
+        })(),
         phone: `(${Math.floor(Math.random() * 900) + 100})-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 10000)}`,
         email: `customer${i + 1}@example.com`,
         city: city,
@@ -310,6 +328,7 @@ const CustomerInfo = () => {
         pca: pcaOptions[Math.floor(Math.random() * pcaOptions.length)],
         supportPlanner: supportPlannerOptions[Math.floor(Math.random() * supportPlannerOptions.length)],
         lastVisitDate: lastVisitDate,
+        notes: '',
       };
 
       // 添加紧急联系人信息
@@ -389,7 +408,29 @@ const CustomerInfo = () => {
         </Space>
       ),
     },
-
+    {
+      title: '语言',
+      dataIndex: 'language',
+      key: 'language',
+      width: 100,
+      render: (languages) => {
+        if (Array.isArray(languages) && languages.length > 0) {
+          if (languages.length === 1) {
+            return languages[0];
+          } else {
+            // 如果有多种语言，显示第一种，并在悬停时显示所有语言
+            return (
+              <Tooltip title={languages.join(', ')}>
+                <span style={{ cursor: 'pointer' }}>
+                  {languages[0]} <small style={{ color: '#999', fontSize: '12px', verticalAlign: 'middle' }}>..</small>
+                </span>
+              </Tooltip>
+            );
+          }
+        }
+        return '-';
+      },
+    },
     {
       title: 'Hr/week',
       dataIndex: 'hours',
@@ -576,7 +617,8 @@ const CustomerInfo = () => {
       // 紧急联系人信息
       emergencyContactName: emergencyContact.name || '',
       emergencyContactRelationship: emergencyContact.relationship || '',
-      emergencyContactPhone: emergencyContact.phone || ''
+      emergencyContactPhone: emergencyContact.phone || '',
+      notes: record.notes || '' // 添加备注字段的初始化
     });
     setIsModalVisible(true);
   };
@@ -639,7 +681,8 @@ const CustomerInfo = () => {
               pca: values.pca,
               supportPlanner: values.supportPlanner,
               lastVisitDate: values.lastVisitDate,
-              emergencyContact: emergencyContact
+              emergencyContact: emergencyContact,
+              notes: values.notes
             };
 
             return updatedCustomer;
@@ -688,7 +731,8 @@ const CustomerInfo = () => {
           rn: values.rn,
           pca: values.pca,
           supportPlanner: values.supportPlanner,
-          lastVisitDate: values.lastVisitDate
+          lastVisitDate: values.lastVisitDate,
+          notes: values.notes || '' // 添加备注字段
         };
 
         // 添加紧急联系人信息（如果有）
@@ -946,6 +990,15 @@ const CustomerInfo = () => {
               <span className="label">邮箱:</span>
               <span className="value">{record.email}</span>
             </DetailItem>
+            <DetailItem>
+              <UserOutlined className="icon" />
+              <span className="label">语言:</span>
+              <span className="value">
+                {Array.isArray(record.language)
+                  ? record.language.join(', ')
+                  : record.language || '-'}
+              </span>
+            </DetailItem>
           </Col>
 
           <Col span={8}>
@@ -987,6 +1040,58 @@ const CustomerInfo = () => {
                 <span className="value">暂无紧急联系人信息</span>
               </DetailItem>
             )}
+          </Col>
+
+          {/* 备注区域 */}
+          <Col span={24} style={{ marginTop: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Title level={5} style={{ margin: 0, marginBottom: '8px' }}>备注</Title>
+              {record.notes && (
+                <span style={{
+                  fontSize: '0.7rem',
+                  color: 'rgba(0, 0, 0, 0.45)',
+                  marginLeft: '8px',
+                  marginBottom: '8px'
+                }}>
+                  ({record.notes.split('\n').length}行备注)
+                </span>
+              )}
+            </div>
+            <div
+              ref={el => notesContainerRefs.current[record.id] = el}
+              className="notes-display"
+              style={{
+                height: '100px',
+                padding: '12px',
+                border: '1px solid var(--border-color)',
+                borderRadius: '4px',
+                background: 'var(--bg-secondary)',
+                textAlign: 'left',
+                overflowY: 'scroll', // 强制始终显示竖向滚动条
+                scrollbarGutter: 'stable', // 保留滚动条空间，防止内容跳动
+                resize: 'vertical',
+                maxHeight: '300px',
+                position: 'relative', // 添加相对定位以确保滚动条正确显示
+                paddingRight: '15px' // 为滚动条留出空间
+              }}
+            >
+              {record.notes ? (
+                <div
+                  style={{
+                    whiteSpace: 'pre-wrap',
+                    textAlign: 'left',
+                    width: '100%',
+                    paddingRight: '10px', // 留出空间给滚动条
+                    minHeight: '80px' // 确保内容高度足够，使滚动条始终显示
+                  }}
+                >
+                  {record.notes}
+                </div>
+              ) : (
+                <p style={{ textAlign: 'left' }}>暂无备注</p>
+              )}
+
+            </div>
           </Col>
         </Row>
       </CustomerDetailCard>
@@ -1051,6 +1156,12 @@ const CustomerInfo = () => {
             expandedRowKeys: expandedRowKeys,
             onExpand: handleExpand,
             rowExpandable: () => true,
+            expandIcon: ({ expanded, onExpand, record }) => (
+              <ModernExpandButton
+                expanded={expanded}
+                onClick={() => onExpand(record, !expanded)}
+              />
+            )
           }}
           pagination={{
             position: ['bottomCenter'],
@@ -1124,12 +1235,17 @@ const CustomerInfo = () => {
               label="语言"
               rules={[{ required: true, message: '请选择语言' }]}
             >
-              <Select>
+              <Select
+                mode="multiple"
+                placeholder="请选择语言"
+                style={{ width: '100%' }}
+              >
                 <Select.Option value="中文">中文</Select.Option>
+                <Select.Option value="粤语">粤语</Select.Option>
+                <Select.Option value="福州话">福州话</Select.Option>
                 <Select.Option value="英语">英语</Select.Option>
+                <Select.Option value="西班牙语">西班牙语</Select.Option>
                 <Select.Option value="法语">法语</Select.Option>
-                <Select.Option value="德语">德语</Select.Option>
-                <Select.Option value="日语">日语</Select.Option>
               </Select>
             </Form.Item>
 
@@ -1327,6 +1443,16 @@ const CustomerInfo = () => {
                 />
               </Form.Item>
             </div>
+          </div>
+
+          <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+            <h3 style={{ marginBottom: '16px' }}>备注信息</h3>
+            <Form.Item
+              name="notes"
+              label="备注"
+            >
+              <Input.TextArea rows={4} placeholder="请输入备注信息" />
+            </Form.Item>
           </div>
         </Form>
       </Modal>

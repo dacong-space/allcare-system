@@ -1,5 +1,6 @@
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useContext } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useContext, useEffect } from 'react';
+import LoadingScreen from './components/LoadingScreen';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 
@@ -39,9 +40,15 @@ function App() {
 const AppRoutes = () => {
   // 受保护的路由组件
   const ProtectedRoute = ({ children }) => {
-    const { isAuthenticated } = useContext(AuthContext);
+    const { isAuthenticated, isLoading } = useContext(AuthContext);
+
+    // 如果还在加载中，返回加载指示器
+    if (isLoading) {
+      return <LoadingScreen />;
+    }
 
     if (!isAuthenticated) {
+      // 不再保存之前的路径，始终重定向到登录页
       return <Navigate to="/login" replace />;
     }
     return children;
