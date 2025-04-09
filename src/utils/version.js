@@ -9,7 +9,7 @@ console.log(`环境变量中的版本号: ${import.meta.env.APP_VERSION || '未�
 
 // 获取构建时间戳
 // 这个值会在构建时被替换为实际的时间戳
-export const BUILD_TIMESTAMP = '1744089972505';
+export const BUILD_TIMESTAMP = '1744218325950';
 
 // 格式化时间戳为可读的日期时间
 export const formatBuildDate = (timestamp) => {

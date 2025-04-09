@@ -107,6 +107,20 @@ body {
   transition: opacity 0.3s ease;
 }
 
+/* 覆盖社交登录按钮的默认样式 */
+.social-button.ant-btn:hover,
+.social-button.ant-btn:focus {
+  color: #3e6c45 !important;
+  border-color: #3e6c45 !important;
+  background-color: white !important;
+}
+
+.social-button.ant-btn:active {
+  color: #2c4e32 !important;
+  border-color: #2c4e32 !important;
+  background-color: white !important;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
