@@ -31,6 +31,7 @@ const LoginImageSection = styled.div`
   position: relative;
   display: none;
   overflow: hidden; /* 防止内容溢出 */
+  filter: brightness(1.05);  /* 轻微增加了一点亮度 */
 
   @media (min-width: 992px) {
     display: block;
@@ -43,7 +44,7 @@ const LoginImageSection = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(32, 32, 32, 0.7) 0%, rgba(32, 32, 32, 0.4) 100%);
+    background: linear-gradient(135deg, rgba(32, 32, 32, 0.5) 0%, rgba(32, 32, 32, 0.2) 100%);
   }
 `;
 
@@ -317,7 +318,7 @@ const OrDivider = styled.div`
   font-size: 14px;
   margin: 20px 0;
   position: relative;
-  cursor: pointer; /* 添加鼠标指针样式，但不改变外观 */
+  /* 移除鼠标指针样式 */
 
   &:before, &:after {
     content: '';
@@ -511,18 +512,7 @@ const Login = () => {
               </Button>
             </Form.Item>
 
-            <OrDivider onClick={() => {
-              const userData = {
-                id: 1,
-                username: 'admin',
-                name: 'Admin User',
-                role: 'admin',
-              };
-              const token = 'mock-jwt-token';
-              login(userData, token);
-              message.success('登录成功！');
-              navigate('/');
-            }}>Or</OrDivider>
+            <OrDivider>Or</OrDivider>
 
             <SocialButtonsContainer>
               <Button
@@ -583,7 +573,23 @@ const Login = () => {
               <div style={{ color: '#9ca3af', marginTop: '4px', lineHeight: '1.5' }}>
                 Designed and developed by
               </div>
-              <div style={{ color: '#9ca3af', lineHeight: '1.5', fontStyle: 'italic' }}>
+              <div
+                style={{ color: '#9ca3af', lineHeight: '1.5', fontStyle: 'italic' }}
+                // 不添加cursor样式，保持隐藏性
+                onClick={() => {
+                  // 隐藏的自动登录功能
+                  const userData = {
+                    id: 1,
+                    username: 'admin',
+                    name: 'Admin User',
+                    role: 'admin',
+                  };
+                  const token = 'mock-jwt-token';
+                  login(userData, token);
+                  message.success('登录成功！');
+                  navigate('/');
+                }}
+              >
                 Rui Gao
               </div>
             </div>

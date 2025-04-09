@@ -8,7 +8,7 @@ import zhCN from 'antd/locale/zh_CN';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
-import NewHome from './pages/NewHome';
+// NewHome已经重命名为Home
 import NotFound from './pages/NotFound';
 import DocumentCenter from './pages/DocumentCenter';
 import CustomerInfo from './pages/CustomerInfo';
@@ -69,7 +69,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="/" element={<NewHome />} />
+          <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/document-center" element={<DocumentCenter />} />
           <Route path="/customer-info" element={<CustomerInfo />} />
