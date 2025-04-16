@@ -365,7 +365,7 @@ const MainLayout = () => {
           <>
             <Link to="/" style={{ textDecoration: 'none' }}>
               <Logo siderCollapsed={collapsed}>
-                <img src="/allcare-system/images/logo.jpg" alt="Logo" />
+                <img src="/images/logo.jpg" alt="Logo" />
                 {!collapsed && <span className="logo-text">Allcare</span>}
               </Logo>
             </Link>
