@@ -13,7 +13,7 @@ export default defineConfig({
     }
   },
   plugins: [react()],
-  base: '/allcare-system/',
+  base: '/',
   define: {
     // 确保版本号正确注入
     'import.meta.env.APP_VERSION': JSON.stringify(packageJson.version),
