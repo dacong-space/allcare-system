@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../utils/api';
 import { setDocumentCount } from '../services/dataService';
 import {
   Layout,

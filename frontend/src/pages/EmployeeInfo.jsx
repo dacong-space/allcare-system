@@ -247,7 +247,7 @@ const EmployeeInfo = () => {
   // 从后端获取员工列表
   const fetchEmployees = async () => {
     try {
-      const res = await fetch('/api/employees', {
+      const res = await fetch(`${API_BASE}/employees`, {
         headers: { 'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '' }
       });
       const result = await res.json();
@@ -534,7 +534,7 @@ const EmployeeInfo = () => {
         setIsModalVisible(false);
       } else {
         // 添加新员工，调用后端 POST 接口
-        const res = await fetch('/api/employees', {
+        const res = await fetch(`${API_BASE}/employees`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -227,7 +227,9 @@ const CustomerInfo = () => {
   const [form] = Form.useForm();
   const notesContainerRefs = useRef({});
 
-  // 处理行展开/收起
+  import { API_BASE } from '../utils/api';
+
+// 处理行展开/收起
   const handleExpand = (expanded, record) => {
     if (expanded) {
       // 展开当前行，自动收起其他行
