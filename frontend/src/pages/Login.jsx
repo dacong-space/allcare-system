@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
+import { API_BASE } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 
 import { Form, Input, Button, message, Checkbox, Tooltip } from 'antd';
@@ -402,7 +403,7 @@ const Login = () => {
     setLoading(true);
     setLoginError('');
 
-    fetch('/api/login', {
+    fetch(`${API_BASE}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: values.username, password: values.password })

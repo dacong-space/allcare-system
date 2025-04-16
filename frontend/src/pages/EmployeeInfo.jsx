@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../utils/api';
 import dayjs from 'dayjs';
 import { setEmployeeCount } from '../services/dataService';
 import ModernExpandButton from '../components/ModernExpandButton';

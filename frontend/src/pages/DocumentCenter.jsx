@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE } from '../utils/api';
+
 import { setDocumentCount } from '../services/dataService';
 import {
   Layout,
@@ -272,7 +273,9 @@ const DocumentCenter = () => {
     fetchFiles();
   }, []);
 
-  const fetchFiles = async () => {
+  
+
+const fetchFiles = async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/documents`, {
@@ -314,7 +317,7 @@ const DocumentCenter = () => {
       formData.append('category', values.category || '');
       formData.append('subcategory', values.subcategory || '');
       formData.append('uploadBy', localStorage.getItem('username') || 'Admin');
-      const res = await fetch('/api/documents/upload', {
+      const res = await fetch(`${API_BASE}/documents/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -337,7 +340,7 @@ const DocumentCenter = () => {
   const handleDownload = async (record) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/documents/${record.key}/download`, {
+      const res = await fetch(`${API_BASE}/documents/${record.key}/download`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('下载失败');

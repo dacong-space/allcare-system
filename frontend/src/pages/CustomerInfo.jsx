@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../utils/api';
 import dayjs from 'dayjs';
 import { setCustomerCount } from '../services/dataService';
 import ModernExpandButton from '../components/ModernExpandButton';
@@ -227,7 +228,7 @@ const CustomerInfo = () => {
   const [form] = Form.useForm();
   const notesContainerRefs = useRef({});
 
-  import { API_BASE } from '../utils/api';
+  
 
 // 处理行展开/收起
   const handleExpand = (expanded, record) => {
@@ -834,12 +835,9 @@ const CustomerInfo = () => {
           });
           // 重新拉取客户数据
           fetch(`${API_BASE}/customers`, {
-  headers: {
-    'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
-    'Content-Type': 'application/json'
-  },
             headers: {
-              Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
+              Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
             }
           })
             .then(res => res.json())
