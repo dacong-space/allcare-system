@@ -1,0 +1,514 @@
+[
+  {
+    "id": "CEO",
+    "name": "高睿",
+    "age": 30,
+    "gender": "男",
+    "language": [
+      "中文",
+      "英文"
+    ],
+    "phone": "(301)-666-8888",
+    "email": "bos666@allcarehealthcare.com",
+    "address": "666 test, Potomac, MD",
+    "joinDate": "2024-08-06",
+    "position": "CEO",
+    "status": "active",
+    "notes": "高总牛逼666666666666666666666"
+  },
+  {
+    "id": "RN001",
+    "name": "谢涵雨",
+    "age": 29,
+    "gender": "女",
+    "language": [
+      "中文",
+      "英文"
+    ],
+    "phone": "(301)-888-6666",
+    "email": "RN666@allcarehealthcare.com",
+    "address": "666 test, Potomac, MD",
+    "joinDate": "2024-08-08",
+    "position": "RN",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "RN002",
+    "name": "宋书林",
+    "age": 29,
+    "gender": "女",
+    "language": [
+      "中文",
+      "英文"
+    ],
+    "phone": "(301)-234-7890",
+    "email": "RN002@allcarehealthcare.com",
+    "address": "123 test, Germantown, MD",
+    "joinDate": "2025-04-01",
+    "position": "RN",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP001",
+    "name": "何志洋",
+    "age": 51,
+    "gender": "男",
+    "language": [
+      "法语",
+      "福州话"
+    ],
+    "phone": "(303)-376-5252",
+    "email": "employee1@example.com",
+    "address": "2517 Elm St, Waldorf, MD",
+    "joinDate": "2024-12-16",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP002",
+    "name": "冯欣",
+    "age": 60,
+    "gender": "男",
+    "language": [
+      "中文"
+    ],
+    "phone": "(967)-391-8935",
+    "email": "employee2@example.com",
+    "address": "1668 Washington Blvd, Bethesda, MD",
+    "joinDate": "2025-02-26",
+    "position": "PCA",
+    "status": "inactive",
+    "notes": ""
+  },
+  {
+    "id": "EMP003",
+    "name": "李晨洋",
+    "age": 54,
+    "gender": "男",
+    "language": [
+      "法语",
+      "福州话",
+      "西班牙语"
+    ],
+    "phone": "(377)-400-7932",
+    "email": "employee3@example.com",
+    "address": "7508 Park Ln, Silver Spring, MD",
+    "joinDate": "2024-10-17",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP004",
+    "name": "黄雅",
+    "age": 22,
+    "gender": "女",
+    "language": [
+      "中文"
+    ],
+    "phone": "(757)-720-7966",
+    "email": "employee4@example.com",
+    "address": "4928 Park Ln, Columbia, MD",
+    "joinDate": "2024-12-16",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP005",
+    "name": "孙洋",
+    "age": 38,
+    "gender": "男",
+    "language": [
+      "法语",
+      "西班牙语",
+      "福州话"
+    ],
+    "phone": "(649)-880-2584",
+    "email": "employee5@example.com",
+    "address": "5145 Pine St, Rockville, MD",
+    "joinDate": "2024-09-28",
+    "position": "PCA",
+    "status": "inactive",
+    "notes": ""
+  },
+  {
+    "id": "EMP006",
+    "name": "陆晨强",
+    "age": 29,
+    "gender": "女",
+    "language": [
+      "中文",
+      "英语",
+      "法语"
+    ],
+    "phone": "(694)-817-1411",
+    "email": "employee6@example.com",
+    "address": "1616 Elm St, Germantown, MD",
+    "joinDate": "2025-03-28",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP007",
+    "name": "赵刚",
+    "age": 40,
+    "gender": "男",
+    "language": [
+      "中文",
+      "西班牙语"
+    ],
+    "phone": "(572)-794-7080",
+    "email": "employee7@example.com",
+    "address": "8637 Park Ln, Waldorf, MD",
+    "joinDate": "2024-11-08",
+    "position": "PCA",
+    "status": "inactive",
+    "notes": ""
+  },
+  {
+    "id": "EMP008",
+    "name": "吴国欣",
+    "age": 60,
+    "gender": "女",
+    "language": [
+      "西班牙语",
+      "法语",
+      "福州话"
+    ],
+    "phone": "(976)-196-1971",
+    "email": "employee8@example.com",
+    "address": "9104 Maple Dr, Baltimore, MD",
+    "joinDate": "2025-01-17",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP009",
+    "name": "汪洋",
+    "age": 26,
+    "gender": "女",
+    "language": [
+      "西班牙语"
+    ],
+    "phone": "(558)-634-7648",
+    "email": "employee9@example.com",
+    "address": "3471 Church St, Waldorf, MD",
+    "joinDate": "2025-02-23",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP010",
+    "name": "刘明",
+    "age": 46,
+    "gender": "男",
+    "language": [
+      "西班牙语",
+      "中文"
+    ],
+    "phone": "(132)-399-9846",
+    "email": "employee10@example.com",
+    "address": "8905 Elm St, Baltimore, MD",
+    "joinDate": "2025-01-19",
+    "position": "PCA",
+    "status": "inactive",
+    "notes": ""
+  },
+  {
+    "id": "EMP011",
+    "name": "钱洋涛",
+    "age": 33,
+    "gender": "男",
+    "language": [
+      "法语",
+      "福州话"
+    ],
+    "phone": "(396)-441-6327",
+    "email": "employee11@example.com",
+    "address": "9742 Maple Dr, Baltimore, MD",
+    "joinDate": "2025-03-06",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP012",
+    "name": "王娟洋",
+    "age": 45,
+    "gender": "男",
+    "language": [
+      "法语"
+    ],
+    "phone": "(974)-599-5073",
+    "email": "employee12@example.com",
+    "address": "5193 Park Ln, Silver Spring, MD",
+    "joinDate": "2024-11-10",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP013",
+    "name": "林欣晨",
+    "age": 36,
+    "gender": "女",
+    "language": [
+      "福州话",
+      "粤语",
+      "英语"
+    ],
+    "phone": "(536)-797-2136",
+    "email": "employee13@example.com",
+    "address": "7351 Main St, Germantown, MD",
+    "joinDate": "2024-11-20",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP014",
+    "name": "许海",
+    "age": 41,
+    "gender": "男",
+    "language": [
+      "福州话",
+      "英语",
+      "法语"
+    ],
+    "phone": "(701)-731-8763",
+    "email": "employee14@example.com",
+    "address": "5683 Washington Blvd, Rockville, MD",
+    "joinDate": "2024-08-20",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP015",
+    "name": "周文",
+    "age": 25,
+    "gender": "男",
+    "language": [
+      "福州话",
+      "法语",
+      "英语"
+    ],
+    "phone": "(322)-673-3759",
+    "email": "employee15@example.com",
+    "address": "5813 Pine St, Columbia, MD",
+    "joinDate": "2024-09-27",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP016",
+    "name": "何杰伟",
+    "age": 22,
+    "gender": "男",
+    "language": [
+      "福州话"
+    ],
+    "phone": "(447)-633-1769",
+    "email": "employee16@example.com",
+    "address": "8674 River Rd, Rockville, MD",
+    "joinDate": "2025-02-21",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP017",
+    "name": "郑洋",
+    "age": 53,
+    "gender": "男",
+    "language": [
+      "粤语"
+    ],
+    "phone": "(629)-527-9645",
+    "email": "employee17@example.com",
+    "address": "6108 Park Ln, Silver Spring, MD",
+    "joinDate": "2024-09-20",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP018",
+    "name": "林强",
+    "age": 55,
+    "gender": "男",
+    "language": [
+      "英语",
+      "粤语",
+      "法语"
+    ],
+    "phone": "(488)-388-5665",
+    "email": "employee18@example.com",
+    "address": "4366 Oak Ave, Silver Spring, MD",
+    "joinDate": "2024-11-11",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP019",
+    "name": "李海建",
+    "age": 51,
+    "gender": "女",
+    "language": [
+      "福州话",
+      "中文"
+    ],
+    "phone": "(570)-992-6730",
+    "email": "employee19@example.com",
+    "address": "8153 River Rd, Frederick, MD",
+    "joinDate": "2025-02-24",
+    "position": "PCA",
+    "status": "inactive",
+    "notes": ""
+  },
+  {
+    "id": "EMP020",
+    "name": "周晨",
+    "age": 32,
+    "gender": "男",
+    "language": [
+      "福州话",
+      "西班牙语",
+      "法语"
+    ],
+    "phone": "(839)-215-3265",
+    "email": "employee20@example.com",
+    "address": "3039 Main St, Baltimore, MD",
+    "joinDate": "2024-11-14",
+    "position": "PCA",
+    "status": "inactive",
+    "notes": ""
+  },
+  {
+    "id": "EMP021",
+    "name": "黄晨浩",
+    "age": 24,
+    "gender": "女",
+    "language": [
+      "英语",
+      "西班牙语",
+      "福州话"
+    ],
+    "phone": "(188)-396-1851",
+    "email": "employee21@example.com",
+    "address": "2295 River Rd, Columbia, MD",
+    "joinDate": "2024-11-02",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP022",
+    "name": "孙健志",
+    "age": 31,
+    "gender": "女",
+    "language": [
+      "法语",
+      "西班牙语"
+    ],
+    "phone": "(680)-855-5713",
+    "email": "employee22@example.com",
+    "address": "1341 Main St, Baltimore, MD",
+    "joinDate": "2025-03-09",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP023",
+    "name": "陆娟",
+    "age": 24,
+    "gender": "女",
+    "language": [
+      "英语"
+    ],
+    "phone": "(965)-967-8028",
+    "email": "employee23@example.com",
+    "address": "5437 Oak Ave, Waldorf, MD",
+    "joinDate": "2024-08-21",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP024",
+    "name": "许晨杰",
+    "age": 25,
+    "gender": "男",
+    "language": [
+      "英语"
+    ],
+    "phone": "(302)-240-4268",
+    "email": "employee24@example.com",
+    "address": "1865 Maple Dr, Bethesda, MD",
+    "joinDate": "2025-03-02",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP025",
+    "name": "陈斌",
+    "age": 27,
+    "gender": "女",
+    "language": [
+      "法语"
+    ],
+    "phone": "(452)-281-4444",
+    "email": "employee25@example.com",
+    "address": "6645 Pine St, Silver Spring, MD",
+    "joinDate": "2024-12-17",
+    "position": "PCA",
+    "status": "active",
+    "notes": ""
+  },
+  {
+    "id": "EMP026",
+    "name": "钱伟平",
+    "age": 49,
+    "gender": "男",
+    "language": [
+      "西班牙语",
+      "粤语",
+      "中文"
+    ],
+    "phone": "(673)-911-9133",
+    "email": "employee26@example.com",
+    "address": "9462 Park Ln, Bethesda, MD",
+    "joinDate": "2024-08-27",
+    "position": "PCA",
+    "status": "onleave",
+    "notes": ""
+  },
+  {
+    "id": "EMP027",
+    "name": "陈晨",
+    "age": 44,
+    "gender": "男",
+    "language": [
+      "西班牙语",
+      "粤语"
+    ],
+    "phone": "(261)-549-7500",
+    "email": "employee27@example.com",
+    "address": "9537 Cedar Rd, Frederick, MD",
+    "joinDate": "2024-10-24",
+    "position": "PCA",
+    "status": "inactive",
+    "notes": ""
+  }
+]
