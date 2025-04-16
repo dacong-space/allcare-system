@@ -240,7 +240,7 @@ const CustomerInfo = () => {
 
   // 初始化客户数据（仅从后端接口获取）
   useEffect(() => {
-    fetch('/api/customers', {
+    fetch(`${API_BASE}/customers`, {
   headers: {
     'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
     'Content-Type': 'application/json'
@@ -598,7 +598,7 @@ const CustomerInfo = () => {
           emergencyContact: emergencyContact,
           notes: values.notes
         };
-        fetch(`/api/customers/${currentCustomer.id}`, {
+        fetch(`${API_BASE}/customers/${currentCustomer.id}`, {
   headers: {
     'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
     'Content-Type': 'application/json'
@@ -616,7 +616,7 @@ const CustomerInfo = () => {
               message.success('客户信息已更新');
               setIsModalVisible(false);
               // 重新拉取客户数据
-              fetch('/api/customers', {
+              fetch(`${API_BASE}/customers`, {
   headers: {
     'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
     'Content-Type': 'application/json'
@@ -679,7 +679,7 @@ const CustomerInfo = () => {
           };
         }
 
-        fetch('/api/customers', {
+        fetch(`${API_BASE}/customers`, {
   headers: {
     'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
     'Content-Type': 'application/json'
@@ -697,7 +697,7 @@ const CustomerInfo = () => {
               message.success('客户添加成功');
               setIsModalVisible(false);
               // 重新拉取客户数据
-              fetch('/api/customers', {
+              fetch(`${API_BASE}/customers`, {
   headers: {
     'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
     'Content-Type': 'application/json'
@@ -834,7 +834,7 @@ const CustomerInfo = () => {
   // 处理删除
   const handleDelete = () => {
     if (!currentCustomer) return;
-    fetch(`/api/customers/${currentCustomer.id}`, {
+    fetch(`${API_BASE}/customers/${currentCustomer.id}`, {
   headers: {
     'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
     'Content-Type': 'application/json'
@@ -852,7 +852,7 @@ const CustomerInfo = () => {
             icon: <DeleteOutlined style={{ color: '#ef4444' }} />
           });
           // 重新拉取客户数据
-          fetch('/api/customers', {
+          fetch(`${API_BASE}/customers`, {
   headers: {
     'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
     'Content-Type': 'application/json'

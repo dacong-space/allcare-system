@@ -274,7 +274,7 @@ const DocumentCenter = () => {
   const fetchFiles = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/documents', {
+      const res = await fetch(`${API_BASE}/documents`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -534,7 +534,7 @@ const DocumentCenter = () => {
   const handleEditCategorySubmit = async (values) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`/api/documents/${editFile.key}`, {
+      const res = await fetch(`${API_BASE}/documents/${editFile.key}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
