@@ -494,14 +494,11 @@ const CustomerInfo = () => {
     setCurrentCustomer(null);
     form.resetFields();
     setExpandedRowKeys([]);
-
-    // 不预填客户ID
-    form.setFieldsValue({
-      id: ''
-    });
-
+    form.setFieldsValue({ id: '' });
     setIsModalVisible(true);
-  };
+  }
+
+
 
   // 显示编辑客户模态框
   const handleEdit = (record) => {
@@ -577,6 +574,7 @@ const CustomerInfo = () => {
           };
         }
         const updatedCustomer = {
+          id: values.id, // 修复：确保PUT请求body中带id字段
           name: values.name,
           age: values.age,
           gender: values.gender,
@@ -1167,9 +1165,9 @@ const CustomerInfo = () => {
             <Form.Item
               name="id"
               label="ID (MA#)"
-              rules={[{ required: false }]}
+              rules={[{ required: true, message: '请输入ID（格式：MA+数字）' }]}
             >
-              <Input placeholder="请输入ID（格式：MA+数字）" disabled={!!currentCustomer} />
+              <Input placeholder="请输入ID（格式：MA+数字）" disabled={false} />
             </Form.Item>
 
             <Form.Item

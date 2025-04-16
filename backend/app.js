@@ -1,32 +1,35 @@
-import express from 'express';
-import cors from 'cors';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import authRoutes from './routes/auth.js';
-import customerRoutes from './routes/customers.js';
-import employeeRoutes from './routes/employees.js';
-import documentRoutes from './routes/documents.js';
+const express = require('express');
+const cors = require('cors');
+const sequelize = require('./db');
+const Customer = require('./models/Customer');
+const authRoutes = require('./routes/auth');
+const customerRoutes = require('./routes/customers');
+const employeeRoutes = require('./routes/employees');
+const documentRoutes = require('./routes/documents');
 
 const app = express();
 const PORT = 3001;
 
+// 全局日志，输出所有请求的方法和路径
+app.use((req, res, next) => {
+  console.log(`[全局日志] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(cors());
 app.use(express.json());
 
-// 路由
+// 登录相关接口
 app.use('/api', authRoutes);
+
+// 客户相关接口
 app.use('/api/customers', customerRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/documents', documentRoutes);
 
 // 启动数据库并监听端口
-import { initDb } from './utils/db.js';
-import initDocumentsTable from './models/init.js';
-
-(async () => {
-  const db = await initDb(); // 自动初始化数据库和建表
-  await initDocumentsTable(db); // 初始化文档表结构
+sequelize.sync({ alter: true }).then(() => {
   app.listen(PORT, () => {
     console.log(`Backend server running at http://localhost:${PORT}`);
   });
-})();
+});

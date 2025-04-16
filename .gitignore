@@ -25,3 +25,11 @@ dist-ssr
 
 # 其他项目文件夹（如果不是当前项目的一部分）
 medical-management-system/
+
+# Environment files
+.env
+backend/.env
+frontend/.env
+
+# Uploads and generated files
+backend/uploads/

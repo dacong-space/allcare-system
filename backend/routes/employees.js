@@ -1,56 +1,58 @@
-import express from 'express';
-import { authMiddleware } from '../middleware/auth.js';
-import { getDb } from '../utils/db.js';
+const express = require('express');
+const Employee = require('../models/Employee');
+// const { authMiddleware } = require('../middleware/auth'); // 如需权限控制可启用
 
 const router = express.Router();
 
 // 获取员工列表
-router.get('/', authMiddleware, async (req, res) => {
-  const db = getDb();
-  const employees = await db.all('SELECT * FROM employees');
-  const result = employees.map(e => ({
-    ...e,
-    language: JSON.parse(e.language || '[]'),
-  }));
-  res.json({ code: 0, msg: 'success', data: result });
+router.get('/', async (req, res) => {
+  try {
+    const employees = await Employee.findAll();
+    const result = employees.map(e => ({
+      ...e.toJSON(),
+      language: e.language ? JSON.parse(e.language) : []
+    }));
+    res.json({ code: 0, msg: 'success', data: result });
+  } catch (err) {
+    res.json({ code: 1, msg: err.message });
+  }
 });
 
 // 新增员工
-router.post('/', authMiddleware, async (req, res) => {
-  const db = getDb();
-  const {
-    id, name, age, gender, language, phone, email, address, joinDate, position, status, notes
-  } = req.body;
+router.post('/', async (req, res) => {
   try {
-    await db.run(
-      `INSERT INTO employees (id, name, age, gender, language, phone, email, address, joinDate, position, status, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id, name, age, gender, JSON.stringify(language), phone, email, address, joinDate, position, status, notes
-      ]
-    );
-    res.json({ code: 0, msg: 'success' });
+    const data = req.body;
+    const Customer = require('../models/Customer');
+    // 检查员工表和客户表ID唯一性
+    const employeeExists = await Employee.findByPk(data.id);
+    const customerExists = await Customer.findByPk(data.id);
+    if (employeeExists || customerExists) {
+      return res.json({ code: 1, msg: 'ID已存在于员工或客户表，请更换唯一ID' });
+    }
+    data.language = JSON.stringify(data.language || []);
+    const employee = await Employee.create(data);
+    res.json({ code: 0, msg: 'success', data: employee });
   } catch (err) {
     res.json({ code: 1, msg: err.message });
   }
 });
 
 // 编辑员工
-router.put('/:id', authMiddleware, async (req, res) => {
-  const db = getDb();
-  const id = req.params.id;
-  const {
-    name, age, gender, language, phone, email, address, joinDate, position, status, notes
-  } = req.body;
+router.put('/:id', async (req, res) => {
   try {
-    await db.run(
-      `UPDATE employees SET
-        name = ?, age = ?, gender = ?, language = ?, phone = ?, email = ?, address = ?, joinDate = ?, position = ?, status = ?, notes = ?
-      WHERE id = ?`,
-      [
-        name, age, gender, JSON.stringify(language), phone, email, address, joinDate, position, status, notes, id
-      ]
-    );
+    const id = req.params.id;
+    const data = req.body;
+    const Customer = require('../models/Customer');
+    // 支持主键变更时校验唯一性
+    if (data.id && data.id !== id) {
+      const employeeExists = await Employee.findByPk(data.id);
+      const customerExists = await Customer.findByPk(data.id);
+      if (employeeExists || customerExists) {
+        return res.json({ code: 1, msg: '新ID已存在于员工或客户表，请更换唯一ID' });
+      }
+    }
+    if (data.language) data.language = JSON.stringify(data.language);
+    await Employee.update(data, { where: { id } });
     res.json({ code: 0, msg: 'success' });
   } catch (err) {
     res.json({ code: 1, msg: err.message });
@@ -58,15 +60,14 @@ router.put('/:id', authMiddleware, async (req, res) => {
 });
 
 // 删除员工
-router.delete('/:id', authMiddleware, async (req, res) => {
-  const db = getDb();
-  const id = req.params.id;
+router.delete('/:id', async (req, res) => {
   try {
-    await db.run('DELETE FROM employees WHERE id = ?', [id]);
+    const id = req.params.id;
+    await Employee.destroy({ where: { id } });
     res.json({ code: 0, msg: 'success' });
   } catch (err) {
     res.json({ code: 1, msg: err.message });
   }
 });
 
-export default router;
+module.exports = router;

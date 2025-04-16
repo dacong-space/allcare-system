@@ -411,10 +411,15 @@ const Login = () => {
       .then(res => res.json())
       .then(result => {
         if (result.code === 0 && result.data && result.data.token) {
-          // 存储 token
-          localStorage.setItem('token', result.data.token);
+          // 只存储到sessionStorage，刷新页面不退出，关闭标签页/浏览器自动退出
           sessionStorage.setItem('token', result.data.token);
-          login(result.data.userInfo, result.data.token);
+          if (result.data.userInfo) {
+            sessionStorage.setItem('user', JSON.stringify(result.data.userInfo));
+            login(result.data.userInfo, result.data.token);
+          } else {
+            sessionStorage.setItem('user', JSON.stringify({}));
+            login({}, result.data.token);
+          }
           message.success('登录成功！');
           navigate('/', { replace: true });
         } else {
@@ -422,7 +427,7 @@ const Login = () => {
           message.error(result.msg || '登录失败，请检查您的用户名和密码');
         }
       })
-      .catch(() => {
+      .catch((error) => {
         setLoginError('网络错误，登录失败');
         message.error('网络错误，登录失败');
       })
