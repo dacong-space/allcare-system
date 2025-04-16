@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Tooltip, Badge } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
-import { APP_VERSION, BUILD_TIMESTAMP, formatBuildDate, getScriptVersion, fetchVersionInfo } from '../utils/version';
+import { APP_VERSION, BUILD_TIMESTAMP } from '../utils/version';
+import { formatBuildDate, getScriptVersion, fetchVersionInfo } from '../utils/version-utils';
 
 const { Text } = Typography;
 

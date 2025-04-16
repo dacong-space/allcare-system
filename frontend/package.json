@@ -6,7 +6,7 @@
   "homepage": "https://dacong-space.github.io/allcare-system",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node update-version.js",
+    "prebuild": "node update-version.cjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
