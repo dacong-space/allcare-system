@@ -535,16 +535,22 @@ const CustomerInfo = () => {
               },
               {
                 key: '2',
-                icon: <DeleteOutlined />,
-                label: '删除',
-                danger: true,
-                onClick: () => showDeleteConfirm(record)
+                icon: <DownloadOutlined />,
+                label: '导出',
+                onClick: () => handleExport('excel', record)
               },
               {
                 key: '3',
                 icon: <ConsoleSqlOutlined />,
                 label: '数据',
                 onClick: () => console.log('数据结构:', record)
+              },
+              {
+                key: '4',
+                icon: <DeleteOutlined />,
+                label: '删除',
+                danger: true,
+                onClick: () => showDeleteConfirm(record)
               },
             ],
           }}
@@ -870,104 +876,54 @@ const CustomerInfo = () => {
     });
   };
 
-  // 处理导出数据
-  const handleExport = (type) => {
+  // 处理导出单个客户数据
+  const handleExport = (type, record) => {
     try {
       switch (type) {
-        case 'json':
-          // 导出JSON - 导出完整数据结构
-          const jsonData = JSON.stringify(customerData, null, 2);
-          const jsonBlob = new Blob([jsonData], { type: 'application/json' });
-          const jsonUrl = URL.createObjectURL(jsonBlob);
-          const jsonLink = document.createElement('a');
-          jsonLink.href = jsonUrl;
-          jsonLink.download = '客户数据.json';
-          jsonLink.click();
-          URL.revokeObjectURL(jsonUrl);
+        case 'json': {
+          const jsonData = JSON.stringify(record, null, 2);
+          const blob = new Blob([jsonData], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `客户_${record.id}.json`;
+          link.click();
+          URL.revokeObjectURL(url);
           message.success('客户数据已导出为JSON格式');
           break;
-
-        case 'excel':
-          // 导出Excel (CSV) - 导出完整数据结构
-          // 添加BOM头解决中文乱码问题
+        }
+        case 'excel': {
           const BOM = '\uFEFF';
-
-          // 按照指定的顺序排列字段
           const fieldOrder = [
-            'id',            // ID
-            'name',          // 姓名
-            'age',           // 年龄
-            'gender',        // 性别
-            'language',      // 语言
-            'phone',         // 电话
-            'email',         // 邮箱
-            'city',          // 城市
-            'address',       // 地址
-            'hours',         // 工时
-            'joinDate',      // 加入时间
-            'joinCount',     // 第几次加入
-            'status',        // 状态
-            'points',        // 积分
-            'preferredDate', // 偏好日期
-            'rn',            // RN
-            'pca',           // PCA
-            'supportPlanner', // Support Planner
-            'lastVisitDate'  // 最新家访日期
+            'id','name','age','gender','language','phone','email','city','address','hours','joinDate','joinCount','status','points','preferredDate','rn','pca','supportPlanner','lastVisitDate'
           ];
-
-          // 获取所有存在的字段
-          const existingFields = new Set();
-          customerData.forEach(customer => {
-            Object.keys(customer).forEach(key => {
-              // 排除嵌套对象
-              if (typeof customer[key] !== 'object' || customer[key] === null) {
-                existingFields.add(key);
-              }
-            });
-          });
-
-          // 按照指定的顺序过滤字段，只保留存在的字段
-          const fieldArray = fieldOrder.filter(field => existingFields.has(field));
-
-          // 添加可能存在但未在指定顺序中的字段
-          Array.from(existingFields)
-            .filter(field => !fieldOrder.includes(field))
-            .forEach(field => fieldArray.push(field));
-
-          // 创建CSV头
-          let csvContent = BOM + fieldArray.join(',') + '\n';
-
-          // 添加数据行
-          customerData.forEach(customer => {
-            const row = fieldArray.map(field => {
-              // 处理普通字段
-              if (customer[field] === undefined || customer[field] === null) {
-                return '';
-              } else if (typeof customer[field] === 'object') {
-                return `"${JSON.stringify(customer[field]).replace(/"/g, '""')}"`;
-              } else {
-                // 将字符串包裹在引号中，并将引号转义
-                return `"${String(customer[field]).replace(/"/g, '""')}"`;
-              }
-            }).join(',');
-            csvContent += row + '\n';
-          });
-
-          const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
-          const csvUrl = URL.createObjectURL(csvBlob);
-          const csvLink = document.createElement('a');
-          csvLink.href = csvUrl;
-          csvLink.download = '客户数据.csv';
-          csvLink.click();
-          URL.revokeObjectURL(csvUrl);
+          const existing = Object.keys(record).filter(
+            key => record[key] != null && typeof record[key] !== 'object'
+          );
+          const fields = fieldOrder.filter(f => existing.includes(f));
+          existing.forEach(f => { if (!fields.includes(f)) fields.push(f); });
+          let csv = BOM + fields.join(',') + '\n';
+          const row = fields.map(f => {
+            const v = record[f];
+            if (v == null) return '';
+            return `"${String(v).replace(/"/g, '""')}"`;
+          }).join(',');
+          csv += row + '\n';
+          const blob2 = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+          const url2 = URL.createObjectURL(blob2);
+          const link2 = document.createElement('a');
+          link2.href = url2;
+          link2.download = `客户_${record.id}.csv`;
+          link2.click();
+          URL.revokeObjectURL(url2);
           message.success('客户数据已导出为Excel格式');
           break;
-
+        }
         default:
           message.error('不支持的导出格式');
       }
-    } catch (error) {
-      console.error('导出数据时出错:', error);
+    } catch (err) {
+      console.error('导出时出错:', err);
       message.error('导出数据时出错');
     }
   };
