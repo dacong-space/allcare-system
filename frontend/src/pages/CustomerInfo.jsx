@@ -329,29 +329,6 @@ const CustomerInfo = () => {
       ),
     },
     {
-      title: '语言',
-      dataIndex: 'language',
-      key: 'language',
-      width: 100,
-      render: (languages) => {
-        if (Array.isArray(languages) && languages.length > 0) {
-          if (languages.length === 1) {
-            return languages[0];
-          } else {
-            // 如果有多种语言，显示第一种，并在悬停时显示所有语言
-            return (
-              <Tooltip title={languages.join(', ')}>
-                <span style={{ cursor: 'pointer' }}>
-                  {languages[0]} <small style={{ color: '#999', fontSize: '12px', verticalAlign: 'middle' }}>..</small>
-                </span>
-              </Tooltip>
-            );
-          }
-        }
-        return '-';
-      },
-    },
-    {
       title: 'Hr/week',
       dataIndex: 'hours',
       key: 'hours',
@@ -365,16 +342,7 @@ const CustomerInfo = () => {
       sortDirections: ['ascend', 'descend'],
     },
     {
-      title: '积分',
-      dataIndex: 'points',
-      key: 'points',
-      width: 100,
-      sorter: (a, b) => a.points - b.points,
-      sortDirections: ['ascend', 'descend'],
-    },
-
-    {
-      title: '地点',
+      title: '城市',
       dataIndex: 'city',
       key: 'city',
       width: 120,
@@ -414,11 +382,11 @@ const CustomerInfo = () => {
       key: 'nextVisitDate',
       width: 140,
       render: (_, record) => {
-        // 如果有最新家访日期，计算下次家访日期（4个月后）
+        // 如果有最新家访日期，计算下次家访日期（120天后）
         if (record.lastVisitDate) {
           const lastVisitDate = new Date(record.lastVisitDate);
           const nextVisitDate = new Date(lastVisitDate);
-          nextVisitDate.setMonth(nextVisitDate.getMonth() + 4);
+          nextVisitDate.setDate(nextVisitDate.getDate() + 120);
 
           // 格式化为 MM/DD/YYYY
           const month = (nextVisitDate.getMonth() + 1).toString().padStart(2, '0');
@@ -436,12 +404,29 @@ const CustomerInfo = () => {
 
         const aDate = new Date(a.lastVisitDate);
         const bDate = new Date(b.lastVisitDate);
-        aDate.setMonth(aDate.getMonth() + 4);
-        bDate.setMonth(bDate.getMonth() + 4);
+        aDate.setDate(aDate.getDate() + 120);
+        bDate.setDate(bDate.getDate() + 120);
 
         return aDate - bDate;
       },
       sortDirections: ['ascend', 'descend'],
+    },
+    {
+      title: '下次CarePlan',
+      dataIndex: 'nextCarePlanDate',
+      key: 'nextCarePlanDate',
+      width: 140,
+      render: (_, record) => {
+        if (record.lastCarePlanDate) {
+          const careDate = new Date(record.lastCarePlanDate);
+          careDate.setDate(careDate.getDate() + 365);
+          const month = (careDate.getMonth() + 1).toString().padStart(2, '0');
+          const day = careDate.getDate().toString().padStart(2, '0');
+          const year = careDate.getFullYear();
+          return `${month}/${day}/${year}`;
+        }
+        return '-';
+      },
     },
     {
       title: '状态',
@@ -516,7 +501,7 @@ const CustomerInfo = () => {
       name: record.name,
       age: record.age,
       gender: record.gender,
-      language: record.language,
+      language: JSON.parse(record.language || '[]'),
       phone: record.phone,
       email: record.email,
       city: record.city,
@@ -526,11 +511,22 @@ const CustomerInfo = () => {
       joinCount: record.joinCount,
       status: record.status,
       points: record.points,
-      preferredDates: record.preferredDates,
+      preferredDate: record.preferredDate
+        ? (typeof record.preferredDate === 'string'
+            ? JSON.parse(record.preferredDate)
+            : record.preferredDate)
+        : [],
       rn: record.rn,
       pca: record.pca,
       supportPlanner: record.supportPlanner,
       lastVisitDate: record.lastVisitDate ? dayjs(record.lastVisitDate) : null,
+      // 新增字段初始化
+      birthday: record.birthday ? dayjs(record.birthday) : null,
+      sharedAttemptHours: record.sharedAttemptHours,
+      pca_2: record.pca_2,
+      pca_3: record.pca_3,
+      healthNotes: record.healthNotes || '',
+      lastCarePlanDate: record.lastCarePlanDate ? dayjs(record.lastCarePlanDate) : null,
       // 紧急联系人信息
       emergencyContactName: emergencyContact.name || '',
       emergencyContactRelationship: emergencyContact.relationship || '',
@@ -563,6 +559,10 @@ const CustomerInfo = () => {
         values.hours = values.hours.replace(/[^0-9]/g, '');
       }
 
+      if (values.birthday) values.birthday = values.birthday.format('YYYY-MM-DD');
+      if (values.lastCarePlanDate) values.lastCarePlanDate = values.lastCarePlanDate.format('YYYY-MM-DD');
+      // 处理 preferredDate 多选
+      if (!Array.isArray(values.preferredDate)) values.preferredDate = values.preferredDate ? [values.preferredDate] : [];
       if (currentCustomer) {
         // 编辑现有客户，调用后端接口
         let emergencyContact = null;
@@ -578,7 +578,7 @@ const CustomerInfo = () => {
           name: values.name,
           age: values.age,
           gender: values.gender,
-          language: values.language || [],
+          language: JSON.stringify(values.language || []),
           phone: values.phone,
           email: values.email,
           city: values.city,
@@ -588,13 +588,20 @@ const CustomerInfo = () => {
           joinCount: values.joinCount,
           status: values.status,
           points: values.points,
-          preferredDates: values.preferredDates || [],
+          preferredDate: JSON.stringify(values.preferredDate || []),
           rn: values.rn,
           pca: values.pca,
           supportPlanner: values.supportPlanner,
           lastVisitDate: values.lastVisitDate,
-          emergencyContact: emergencyContact,
-          notes: values.notes
+          emergencyContact: emergencyContact ? JSON.stringify(emergencyContact) : '',
+          notes: values.notes,
+          // 新增字段
+          birthday: values.birthday,
+          sharedAttemptHours: values.sharedAttemptHours,
+          pca_2: values.pca_2,
+          pca_3: values.pca_3,
+          healthNotes: values.healthNotes,
+          lastCarePlanDate: values.lastCarePlanDate
         };
         fetch(`${API_BASE}/customers/${currentCustomer.id}`, {
           method: 'PUT',
@@ -638,12 +645,28 @@ const CustomerInfo = () => {
           customerId = `MA${randomNum}`;
         }
 
+        if (values.birthday && typeof values.birthday.format === 'function') {
+          values.birthday = values.birthday.format('YYYY-MM-DD');
+        } else if (typeof values.birthday === 'string') {
+          // 已经是字符串，保留
+        } else {
+          values.birthday = '';
+        }
+        if (values.lastCarePlanDate && typeof values.lastCarePlanDate.format === 'function') {
+          values.lastCarePlanDate = values.lastCarePlanDate.format('YYYY-MM-DD');
+        } else if (typeof values.lastCarePlanDate === 'string') {
+          // 已经是字符串，保留
+        } else {
+          values.lastCarePlanDate = '';
+        }
+        // 处理 preferredDate 多选
+        if (!Array.isArray(values.preferredDate)) values.preferredDate = values.preferredDate ? [values.preferredDate] : [];
         const newCustomer = {
           id: customerId,
           name: values.name,
           age: values.age,
           gender: values.gender,
-          language: values.language || [],
+          language: JSON.stringify(values.language || []),
           phone: values.phone,
           email: values.email,
           city: values.city,
@@ -653,23 +676,31 @@ const CustomerInfo = () => {
           joinCount: values.joinCount,
           status: values.status,
           points: values.points,
-          preferredDates: values.preferredDates || [],
+          preferredDate: JSON.stringify(values.preferredDate || []),
           rn: values.rn,
           pca: values.pca,
           supportPlanner: values.supportPlanner,
           lastVisitDate: values.lastVisitDate,
-          notes: values.notes || ''
+          notes: values.notes || '',
+          // 新增字段
+          birthday: values.birthday,
+          sharedAttemptHours: values.sharedAttemptHours,
+          pca_2: values.pca_2,
+          pca_3: values.pca_3,
+          healthNotes: values.healthNotes,
+          lastCarePlanDate: values.lastCarePlanDate
         };
 
         // 添加紧急联系人信息（如果有）
         if (values.emergencyContactName || values.emergencyContactRelationship || values.emergencyContactPhone) {
-          newCustomer.emergencyContact = {
+          newCustomer.emergencyContact = JSON.stringify({
             name: values.emergencyContactName,
             relationship: values.emergencyContactRelationship,
             phone: values.emergencyContactPhone
-          };
+          });
         }
 
+        console.log('【DEBUG】提交新客户数据:', newCustomer);
         fetch(`${API_BASE}/customers`, {
           method: 'POST',
           headers: {
@@ -680,6 +711,7 @@ const CustomerInfo = () => {
         })
           .then(res => res.json())
           .then(result => {
+            console.log('【DEBUG】后端返回:', result);
             if (result && result.code === 0) {
               message.success('客户添加成功');
               setIsModalVisible(false);
@@ -692,6 +724,7 @@ const CustomerInfo = () => {
               })
                 .then(res => res.json())
                 .then(result => {
+                  console.log('【DEBUG】拉取客户列表(Post):', result.data);
                   if (result && result.code === 0) {
                     setCustomerData(result.data);
                     setCustomerCount(result.data.length);
@@ -751,7 +784,7 @@ const CustomerInfo = () => {
             'joinCount',     // 第几次加入
             'status',        // 状态
             'points',        // 积分
-            'preferredDates', // 偏好日期
+            'preferredDate', // 偏好日期
             'rn',            // RN
             'pca',           // PCA
             'supportPlanner', // Support Planner
@@ -861,203 +894,86 @@ const CustomerInfo = () => {
     return (
       <CustomerDetailCard>
         <Row gutter={[24, 16]}>
-          {/* 第一行 */}
           <Col span={8}>
             <Title level={5}>基本信息</Title>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">ID:</span>
-              <span className="value">{record.id}</span>
-            </DetailItem>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">姓名:</span>
-              <span className="value">{record.name}</span>
-            </DetailItem>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">性别:</span>
-              <span className="value">{record.gender}</span>
-            </DetailItem>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">年龄:</span>
-              <span className="value">{record.age}</span>
-            </DetailItem>
+            <DetailItem><UserOutlined className="icon" /><span className="label">姓名:</span><span className="value">{record.name}</span></DetailItem>
+            <DetailItem><UserOutlined className="icon" /><span className="label">ID:</span><span className="value">{record.id}</span></DetailItem>
+            <DetailItem><UserOutlined className="icon" /><span className="label">性别:</span><span className="value">{record.gender}</span></DetailItem>
+            <DetailItem><UserOutlined className="icon" /><span className="label">年龄:</span><span className="value">{record.age}</span></DetailItem>
+            <DetailItem><CalendarOutlined className="icon" /><span className="label">生日:</span><span className="value">{record.birthday ? dayjs(record.birthday).format('YYYY-MM-DD') : '无'}</span></DetailItem>
+            <DetailItem><UserOutlined className="icon" /><span className="label">语言:</span><span className="value">{Array.isArray(record.language) ? record.language.join(', ') : record.language || '无'}</span></DetailItem>
           </Col>
-
           <Col span={8}>
             <Title level={5}>时间信息</Title>
+            <DetailItem><span className="label">Hours:</span><span className="value">{record.hours}</span></DetailItem>
             <DetailItem>
-              <CalendarOutlined className="icon" />
-              <span className="label">Hr/week:</span>
-              <span className="value">{record.hours}</span>
+              <span className="label">Shared Att Hours:</span>
+              <span className="value">{record.sharedAttemptHours || '无'}</span>
             </DetailItem>
-            <DetailItem>
-              <CalendarOutlined className="icon" />
-              <span className="label">首次加入时间:</span>
-              <span className="value">{record.joinDate}</span>
-            </DetailItem>
-            <DetailItem>
-              <CalendarOutlined className="icon" />
-              <span className="label">结束时间:</span>
-              <span className="value">{record.endDate || '无'}</span>
-            </DetailItem>
-            <DetailItem>
-              <CalendarOutlined className="icon" />
-              <span className="label">第几次加入:</span>
-              <span className="value">{record.joinCount}</span>
-            </DetailItem>
+            <DetailItem><span className="label">加入时间:</span><span className="value">{record.joinDate}</span></DetailItem>
+            <DetailItem><span className="label">第几次加入:</span><span className="value">{record.joinCount}</span></DetailItem>
+            <DetailItem><span className="label">最新家访日期:</span><span className="value">{record.lastVisitDate || '无'}</span></DetailItem>
+            <DetailItem><span className="label">最新CarePlan日期:</span><span className="value">{record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).format('YYYY-MM-DD') : '无'}</span></DetailItem>
           </Col>
-
-          <Col span={8}>
-            <Title level={5}>其他信息</Title>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">积分:</span>
-              <span className="value">{record.points}</span>
-            </DetailItem>
-            <DetailItem>
-              <CalendarOutlined className="icon" />
-              <span className="label">偏好日期:</span>
-              <span className="value">{record.preferredDates ? record.preferredDates.join(', ') : '无'}</span>
-            </DetailItem>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">RN:</span>
-              <span className="value">{record.rn || '无'}</span>
-            </DetailItem>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">PCA:</span>
-              <span className="value">{record.pca || '无'}</span>
-            </DetailItem>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">Support Planner:</span>
-              <span className="value">{record.supportPlanner || '无'}</span>
-            </DetailItem>
-            <DetailItem>
-              <CalendarOutlined className="icon" />
-              <span className="label">最新家访日期:</span>
-              <span className="value">{record.lastVisitDate || '无'}</span>
-            </DetailItem>
-          </Col>
-
-          {/* 第二行 */}
           <Col span={8}>
             <Title level={5}>联系信息</Title>
-            <DetailItem>
-              <PhoneOutlined className="icon" />
-              <span className="label">电话:</span>
-              <span className="value">{record.phone}</span>
-            </DetailItem>
-            <DetailItem>
-              <MailOutlined className="icon" />
-              <span className="label">邮箱:</span>
-              <span className="value">{record.email}</span>
-            </DetailItem>
-            <DetailItem>
-              <UserOutlined className="icon" />
-              <span className="label">语言:</span>
-              <span className="value">
-                {Array.isArray(record.language)
-                  ? record.language.join(', ')
-                  : record.language || '-'}
-              </span>
-            </DetailItem>
+            <DetailItem><PhoneOutlined className="icon" /><span className="label">手机号:</span><span className="value">{record.phone}</span></DetailItem>
+            <DetailItem><MailOutlined className="icon" /><span className="label">邮箱:</span><span className="value">{record.email}</span></DetailItem>
+            <DetailItem><EnvironmentOutlined className="icon" /><span className="label">城市:</span><span className="value">{record.city}</span></DetailItem>
+            <DetailItem><EnvironmentOutlined className="icon" /><span className="label">地址:</span><span className="value">{record.address}</span></DetailItem>
           </Col>
-
+        </Row>
+        <Row gutter={[24, 16]} style={{ marginTop: '16px' }}>
           <Col span={8}>
-            <Title level={5}>地址信息</Title>
-            <DetailItem>
-              <EnvironmentOutlined className="icon" />
-              <span className="label">城市:</span>
-              <span className="value">{record.city}</span>
-            </DetailItem>
-            <DetailItem>
-              <EnvironmentOutlined className="icon" />
-              <span className="label">地址:</span>
-              <span className="value">{record.address}</span>
-            </DetailItem>
+            <Title level={5}>健康信息</Title>
+            <DetailItem><span className="label">RN:</span><span className="value">{record.rn || '无'}</span></DetailItem>
+            <DetailItem><span className="label">PCA:</span><span className="value">{record.pca || '无'}</span></DetailItem>
+            <DetailItem><span className="label">PCA_2:</span><span className="value">{record.pca_2 || '无'}</span></DetailItem>
+            <DetailItem><span className="label">PCA_3:</span><span className="value">{record.pca_3 || '无'}</span></DetailItem>
+            <DetailItem><span className="label">Support Planner:</span><span className="value">{record.supportPlanner || '无'}</span></DetailItem>
           </Col>
-
           <Col span={8}>
             <Title level={5}>紧急联系人</Title>
-            {record.emergencyContact ? (
-              <>
-                <DetailItem>
-                  <UserOutlined className="icon" />
-                  <span className="label">姓名:</span>
-                  <span className="value">{record.emergencyContact.name}</span>
-                </DetailItem>
-                <DetailItem>
-                  <UserOutlined className="icon" />
-                  <span className="label">关系:</span>
-                  <span className="value">{record.emergencyContact.relationship}</span>
-                </DetailItem>
-                <DetailItem>
-                  <PhoneOutlined className="icon" />
-                  <span className="label">电话:</span>
-                  <span className="value">{record.emergencyContact.phone}</span>
-                </DetailItem>
-              </>
-            ) : (
-              <DetailItem>
-                <span className="value">暂无紧急联系人信息</span>
-              </DetailItem>
-            )}
+            <DetailItem><span className="label">姓名:</span><span className="value">{record.emergencyContact?.name || '无'}</span></DetailItem>
+            <DetailItem><span className="label">电话:</span><span className="value">{record.emergencyContact?.phone || '无'}</span></DetailItem>
+            <DetailItem><span className="label">关系:</span><span className="value">{record.emergencyContact?.relationship || '无'}</span></DetailItem>
           </Col>
-
-          {/* 备注区域 */}
-          <Col span={24} style={{ marginTop: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Title level={5} style={{ margin: 0, marginBottom: '8px' }}>备注</Title>
-              {record.notes && (
-                <span style={{
-                  fontSize: '0.7rem',
-                  color: 'rgba(0, 0, 0, 0.45)',
-                  marginLeft: '8px',
-                  marginBottom: '8px'
-                }}>
-                  ({record.notes.split('\n').length}行备注)
-                </span>
-              )}
+          <Col span={8}>
+            <Title level={5}>其他信息</Title>
+            <DetailItem><span className="label">状态:</span><StatusTag className={record.status.toLowerCase()}>{record.status}</StatusTag></DetailItem>
+            <DetailItem><span className="label">积分:</span><span className="value">{record.points}</span></DetailItem>
+            <DetailItem style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <span className="label">偏好时间:</span>
+              <div style={{ marginTop: 8 }}>
+                {(() => {
+                  const arr = record.preferredDate
+                    ? (typeof record.preferredDate === 'string' ? JSON.parse(record.preferredDate) : record.preferredDate)
+                    : [];
+                  if (arr.length === 0) return '无';
+                  const weekOrder = ['周一','周二','周三','周四','周五','周六','周日'];
+                  arr.sort((a, b) => weekOrder.indexOf(a) - weekOrder.indexOf(b));
+                  return arr.map(day => (
+                    <StatusTag
+                      color={{ 周一:'blue', 周二:'green', 周三:'orange', 周四:'magenta', 周五:'cyan', 周六:'purple', 周日:'volcano' }[day] || 'default'}
+                      key={day}
+                    >
+                      {day}
+                    </StatusTag>
+                  ));
+                })()}
+              </div>
+            </DetailItem>
+          </Col>
+        </Row>
+        <Row gutter={[24, 16]} style={{ marginTop: '16px' }}>
+          <Col span={24} style={{ paddingLeft: 0 }}>
+            <Title level={5}>备注</Title>
+            <div style={{ whiteSpace: 'pre-wrap', marginBottom: '12px', textAlign: 'left' }}>
+              {record.notes || '无'}
             </div>
-            <div
-              ref={el => notesContainerRefs.current[record.id] = el}
-              className="notes-display"
-              style={{
-                height: '100px',
-                padding: '12px',
-                border: '1px solid var(--border-color)',
-                borderRadius: '4px',
-                background: 'var(--bg-secondary)',
-                textAlign: 'left',
-                overflowY: 'scroll', // 强制始终显示竖向滚动条
-                scrollbarGutter: 'stable', // 保留滚动条空间，防止内容跳动
-                resize: 'vertical',
-                maxHeight: '300px',
-                position: 'relative', // 添加相对定位以确保滚动条正确显示
-                paddingRight: '15px' // 为滚动条留出空间
-              }}
-            >
-              {record.notes ? (
-                <div
-                  style={{
-                    whiteSpace: 'pre-wrap',
-                    textAlign: 'left',
-                    width: '100%',
-                    paddingRight: '10px', // 留出空间给滚动条
-                    minHeight: '80px' // 确保内容高度足够，使滚动条始终显示
-                  }}
-                >
-                  {record.notes}
-                </div>
-              ) : (
-                <p style={{ textAlign: 'left' }}>暂无备注</p>
-              )}
-
+            <Title level={5}>健康备注</Title>
+            <div style={{ whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+              {record.healthNotes || '无'}
             </div>
           </Col>
         </Row>
@@ -1146,67 +1062,25 @@ const CustomerInfo = () => {
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={[
-          <Button key="cancel" onClick={() => setIsModalVisible(false)}>
-            取消
-          </Button>,
-          <Button key="submit" type="primary" onClick={handleSubmit}>
-            {currentCustomer ? "保存" : "添加"}
-          </Button>,
+          <Button key="cancel" onClick={() => setIsModalVisible(false)}>取消</Button>,
+          <Button key="submit" type="primary" onClick={handleSubmit}>{currentCustomer ? "保存" : "添加"}</Button>
         ]}
-        styles={{ body: { padding: '24px' } }}
         width={800}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{ status: 'active' }}
-        >
+        <Form form={form} layout="vertical" initialValues={{ status: 'active' }}>
+          {/* 基本信息 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <Form.Item
-              name="id"
-              label="ID (MA#)"
-              rules={[{ required: true, message: '请输入ID（格式：MA+数字）' }]}
-            >
-              <Input placeholder="请输入ID（格式：MA+数字）" disabled={false} />
-            </Form.Item>
-
-            <Form.Item
-              name="name"
-              label="姓名"
-              rules={[{ required: true, message: '请输入姓名' }]}
-            >
+            <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>
               <Input placeholder="请输入姓名" />
             </Form.Item>
-
-            <Form.Item
-              name="age"
-              label="年龄"
-              rules={[{ required: true, message: '请输入年龄' }]}
-            >
-              <Input type="number" min={1} max={120} placeholder="请输入年龄" />
+            <Form.Item name="id" label="ID (MA#)" rules={[{ required: true, message: '请输入ID' }]}>
+              <Input placeholder="请输入ID" disabled={!!currentCustomer} />
             </Form.Item>
-
-            <Form.Item
-              name="gender"
-              label="性别"
-              rules={[{ required: true, message: '请选择性别' }]}
-            >
-              <Select>
-                <Select.Option value="男">男</Select.Option>
-                <Select.Option value="女">女</Select.Option>
-              </Select>
+            <Form.Item name="gender" label="性别" rules={[{ required: true, message: '请选择性别' }]}>
+              <Select><Select.Option value="男">男</Select.Option><Select.Option value="女">女</Select.Option></Select>
             </Form.Item>
-
-            <Form.Item
-              name="language"
-              label="语言"
-              rules={[{ required: true, message: '请选择语言' }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="请选择语言"
-                style={{ width: '100%' }}
-              >
+            <Form.Item name="language" label="语言" rules={[{ required: true, message: '请选择语言' }]}>
+              <Select mode="multiple" placeholder="请选择语言" style={{ width: '100%' }}>
                 <Select.Option value="中文">中文</Select.Option>
                 <Select.Option value="粤语">粤语</Select.Option>
                 <Select.Option value="福州话">福州话</Select.Option>
@@ -1215,210 +1089,107 @@ const CustomerInfo = () => {
                 <Select.Option value="法语">法语</Select.Option>
               </Select>
             </Form.Item>
-
-            <Form.Item
-              name="phone"
-              label="电话"
-              rules={[{ required: true, message: '请输入电话' }]}
-            >
-              <Input
-                placeholder="请输入电话"
-                maxLength={14} // (XXX)-XXX-XXXX 格式的最大长度
-                onChange={(e) => {
-                  // 去除非数字字符
-                  const value = e.target.value.replace(/\D/g, '');
-                  if (value.length <= 10) {
-                    // 格式化为 (XXX)-XXX-XXXX
-                    let formattedValue = value;
-                    if (value.length > 3 && value.length <= 6) {
-                      formattedValue = `(${value.slice(0, 3)})-${value.slice(3)}`;
-                    } else if (value.length > 6) {
-                      formattedValue = `(${value.slice(0, 3)})-${value.slice(3, 6)}-${value.slice(6)}`;
-                    } else if (value.length > 0) {
-                      formattedValue = `(${value}`;
-                    }
-                    form.setFieldValue('phone', formattedValue);
-                  }
-                }}
-              />
+            <Form.Item name="age" label="年龄" rules={[{ required: true, message: '请输入年龄' }]}>
+              <Input type="number" min={1} max={120} placeholder="请输入年龄" />
             </Form.Item>
-
-            <Form.Item
-              name="email"
-              label="邮箱"
-              rules={[
-                { type: 'email', message: '请输入有效的邮箱地址' }
-              ]}
-            >
+            <Form.Item name="birthday" label="生日">
+              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择生日" />
+            </Form.Item>
+            <Form.Item name="hours" label="Hours" rules={[{ required: true, message: '请输入Hours' }]}>
+              <Input placeholder="请输入Hours" />
+            </Form.Item>
+            <Form.Item name="sharedAttemptHours" label="Shared Attempt Hours">
+              <Input placeholder="请输入Shared Attempt Hours" />
+            </Form.Item>
+            <Form.Item name="phone" label="手机号" rules={[{ required: true, message: '请输入手机号' }]}>
+              <Input placeholder="请输入手机号" />
+            </Form.Item>
+            <Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '请输入有效邮箱' }]}>
               <Input placeholder="请输入邮箱" />
             </Form.Item>
-
-            <Form.Item
-              name="city"
-              label="城市"
-            >
-              <Input placeholder="请输入城市" />
-            </Form.Item>
-
-            <Form.Item
-              name="hours"
-              label="Hr/week"
-              rules={[{ required: true, message: '请输入Hr/week' }]}
-            >
-              <Input
-                placeholder="请输入小时数"
-                maxLength={3} // 限制最多输入三位数字
-                onChange={(e) => {
-                  // 去除非数字字符
-                  const value = e.target.value.replace(/\D/g, '');
-                  if (value || value === '') {
-                    form.setFieldValue('hours', value);
-                  }
-                }}
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="joinDate"
-              label="加入时间"
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择加入时间" />
-            </Form.Item>
-
-            <Form.Item
-              name="joinCount"
-              label="第几次加入"
-            >
-              <Input type="number" min={1} max={10} placeholder="请输入加入次数" />
-            </Form.Item>
-
-            <Form.Item
-              name="points"
-              label="积分"
-            >
+            <Form.Item name="points" label="积分">
               <Input type="number" min={0} placeholder="请输入积分" />
             </Form.Item>
-
-            <Form.Item
-              name="status"
-              label="状态"
-              rules={[{ required: true, message: '请选择状态' }]}
-            >
-              <Select>
-                <Select.Option value="active">活跃</Select.Option>
-                <Select.Option value="inactive">不活跃</Select.Option>
-                <Select.Option value="pending">待定</Select.Option>
-              </Select>
+            <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
+              <Select><Select.Option value="active">活跃</Select.Option><Select.Option value="inactive">不活跃</Select.Option><Select.Option value="pending">待定</Select.Option></Select>
             </Form.Item>
-
-            <Form.Item
-              name="preferredDates"
-              label="偏好日期"
-            >
-              <Select mode="multiple" placeholder="请选择偏好日期">
-                <Select.Option value="Mon">周一</Select.Option>
-                <Select.Option value="Tue">周二</Select.Option>
-                <Select.Option value="Wed">周三</Select.Option>
-                <Select.Option value="Thu">周四</Select.Option>
-                <Select.Option value="Fri">周五</Select.Option>
-                <Select.Option value="Sat">周六</Select.Option>
-                <Select.Option value="Sun">周日</Select.Option>
-              </Select>
+            <Form.Item name="rn" label="RN">
+              <Input placeholder="请输入RN" />
             </Form.Item>
-
-            <Form.Item
-              name="rn"
-              label="RN"
-            >
-              <Input placeholder="请输入RN编号" />
+            <Form.Item name="pca" label="PCA">
+              <Input placeholder="请输入PCA" />
             </Form.Item>
-
-            <Form.Item
-              name="pca"
-              label="PCA"
-            >
-              <Input placeholder="请输入PCA编号" />
+            <Form.Item name="pca_2" label="PCA_2">
+              <Input placeholder="请输入PCA_2" />
             </Form.Item>
-
-            <Form.Item
-              name="supportPlanner"
-              label="Support Planner"
-            >
+            <Form.Item name="pca_3" label="PCA_3">
+              <Input placeholder="请输入PCA_3" />
+            </Form.Item>
+            <Form.Item name="supportPlanner" label="Support Planner">
               <Input placeholder="请输入Support Planner" />
             </Form.Item>
-
-            <Form.Item
-              name="lastVisitDate"
-              label="最新家访日期"
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择最新家访日期" />
+            <Form.Item name="city" label="城市">
+              <Input placeholder="请输入城市" />
+            </Form.Item>
+            <Form.Item name="address" label="地址" wrapperCol={{ span: 24 }}>
+              <Input.TextArea rows={2} placeholder="请输入地址" />
             </Form.Item>
           </div>
 
-          <Form.Item
-            name="address"
-            label="地址"
-          >
-            <Input.TextArea rows={2} placeholder="请输入地址" />
-          </Form.Item>
-
+          {/* 时间信息 */}
           <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-            <h3 style={{ marginBottom: '16px' }}>紧急联系人信息</h3>
+            <h3>时间信息</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <Form.Item
-                name="emergencyContactName"
-                label="紧急联系人姓名"
-              >
-                <Input placeholder="请输入紧急联系人姓名" />
+              <Form.Item name="joinDate" label="加入时间">
+                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
               </Form.Item>
-
-              <Form.Item
-                name="emergencyContactRelationship"
-                label="关系"
-              >
-                <Select placeholder="请选择关系">
-                  <Select.Option value="父母">父母</Select.Option>
-                  <Select.Option value="配偶">配偶</Select.Option>
-                  <Select.Option value="子女">子女</Select.Option>
-                  <Select.Option value="朋友">朋友</Select.Option>
-                </Select>
+              <Form.Item name="joinCount" label="第几次加入">
+                <Input type="number" placeholder="请输入次数" />
               </Form.Item>
-
-              <Form.Item
-                name="emergencyContactPhone"
-                label="紧急联系人电话"
-              >
-                <Input
-                  placeholder="请输入紧急联系人电话"
-                  maxLength={14} // (XXX)-XXX-XXXX 格式的最大长度
-                  onChange={(e) => {
-                    // 去除非数字字符
-                    const value = e.target.value.replace(/\D/g, '');
-                    if (value.length <= 10) {
-                      // 格式化为 (XXX)-XXX-XXXX
-                      let formattedValue = value;
-                      if (value.length > 3 && value.length <= 6) {
-                        formattedValue = `(${value.slice(0, 3)})-${value.slice(3)}`;
-                      } else if (value.length > 6) {
-                        formattedValue = `(${value.slice(0, 3)})-${value.slice(3, 6)}-${value.slice(6)}`;
-                      } else if (value.length > 0) {
-                        formattedValue = `(${value}`;
-                      }
-                      form.setFieldValue('emergencyContactPhone', formattedValue);
-                    }
-                  }}
-                />
+              <Form.Item name="lastVisitDate" label="最新家访日期">
+                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              </Form.Item>
+              <Form.Item name="lastCarePlanDate" label="最新Care Plan日期">
+                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
               </Form.Item>
             </div>
+            <Form.Item name="preferredDate" label="偏好时间">
+              <Select mode="multiple" placeholder="请选择偏好时间">
+                <Select.Option value="周一">周一</Select.Option>
+                <Select.Option value="周二">周二</Select.Option>
+                <Select.Option value="周三">周三</Select.Option>
+                <Select.Option value="周四">周四</Select.Option>
+                <Select.Option value="周五">周五</Select.Option>
+                <Select.Option value="周六">周六</Select.Option>
+                <Select.Option value="周日">周日</Select.Option>
+              </Select>
+            </Form.Item>
           </div>
 
+          {/* 紧急联系人信息 */}
           <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-            <h3 style={{ marginBottom: '16px' }}>备注信息</h3>
-            <Form.Item
-              name="notes"
-              label="备注"
-            >
-              <Input.TextArea rows={4} placeholder="请输入备注信息" />
+            <h3>紧急联系人信息</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <Form.Item name="emergencyContactName" label="紧急联系人姓名">
+                <Input placeholder="请输入姓名" />
+              </Form.Item>
+              <Form.Item name="emergencyContactRelationship" label="关系">
+                <Select placeholder="请选择关系"><Select.Option value="父母">父母</Select.Option><Select.Option value="配偶">配偶</Select.Option><Select.Option value="子女">子女</Select.Option><Select.Option value="朋友">朋友</Select.Option></Select>
+              </Form.Item>
+            </div>
+            <Form.Item name="emergencyContactPhone" label="紧急联系人电话">
+              <Input placeholder="请输入电话" />
+            </Form.Item>
+          </div>
+
+          {/* 备注信息 */}
+          <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+            <h3>备注信息</h3>
+            <Form.Item name="notes" label="备注">
+              <Input.TextArea rows={3} placeholder="请输入备注" />
+            </Form.Item>
+            <Form.Item name="healthNotes" label="健康备注">
+              <Input.TextArea rows={2} placeholder="请输入健康备注" />
             </Form.Item>
           </div>
         </Form>
@@ -1430,12 +1201,8 @@ const CustomerInfo = () => {
         open={isDeleteModalVisible}
         onCancel={() => setIsDeleteModalVisible(false)}
         footer={[
-          <Button key="cancel" onClick={() => setIsDeleteModalVisible(false)}>
-            取消
-          </Button>,
-          <Button key="submit" type="primary" danger onClick={handleDelete}>
-            删除
-          </Button>,
+          <Button key="cancel" onClick={() => setIsDeleteModalVisible(false)}>取消</Button>,
+          <Button key="submit" type="primary" danger onClick={handleDelete}>删除</Button>
         ]}
         styles={{ body: { padding: '24px' } }}
       >

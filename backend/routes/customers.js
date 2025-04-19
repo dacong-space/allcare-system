@@ -25,6 +25,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const data = req.body;
+    console.log('【DEBUG 后端收到数据】', data);
     const Employee = require('../models/Employee');
     // 检查客户表和员工表ID唯一性
     const customerExists = await Customer.findByPk(data.id);
@@ -32,13 +33,12 @@ router.post('/', async (req, res) => {
     if (customerExists || employeeExists) {
       return res.json({ code: 1, msg: 'ID已存在于客户或员工表，请更换唯一ID' });
     }
-    if (data.language) data.language = JSON.stringify(data.language);
-    if (data.preferredDates) data.preferredDates = JSON.stringify(data.preferredDates);
-    if (data.emergencyContact) data.emergencyContact = JSON.stringify(data.emergencyContact);
+    // 直接用 req.body 字段写入，不做多余处理
     const customer = await Customer.create(data);
-
-    res.json({ code: 0, msg: 'success', data: customer });
+    console.log('【DEBUG 后端写入后】', customer.toJSON());
+    res.json({ code: 0, msg: 'success', data: customer.toJSON() });
   } catch (err) {
+    console.error('【DEBUG 后端异常】', err);
     res.json({ code: 1, msg: err.message });
   }
 });
@@ -51,8 +51,27 @@ router.put('/:id', async (req, res) => {
   const newId = data.id;
 
   if (data.language) data.language = JSON.stringify(data.language);
+  // 兼容 preferredDate（新字段）和 preferredDates（旧字段）
+  if (data.preferredDate && (!data.preferredDates || data.preferredDates.length === 0)) {
+    data.preferredDates = data.preferredDate;
+  }
   if (data.preferredDates) data.preferredDates = JSON.stringify(data.preferredDates);
   if (data.emergencyContact) data.emergencyContact = JSON.stringify(data.emergencyContact);
+  // 保证所有新增字段都传递到模型
+  data.birthday = data.birthday || null;
+  data.sharedAttemptHours = data.sharedAttemptHours || null;
+  data.pca_2 = data.pca_2 || null;
+  data.pca_3 = data.pca_3 || null;
+  // preferredDate 字段处理：始终存储为字符串（JSON数组），否则为 null
+  if (Array.isArray(data.preferredDate) && data.preferredDate.length > 0) {
+    data.preferredDate = JSON.stringify(data.preferredDate);
+  } else if (typeof data.preferredDate === 'string' && data.preferredDate) {
+    data.preferredDate = JSON.stringify([data.preferredDate]);
+  } else {
+    data.preferredDate = null;
+  }
+  data.healthNotes = data.healthNotes || null;
+  data.lastCarePlanDate = data.lastCarePlanDate || null;
 
   const t = await Customer.sequelize.transaction();
   try {

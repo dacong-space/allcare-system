@@ -1,0 +1,9 @@
+{
+  "development": {
+    "username": "ray",
+    "password": "154145",
+    "database": "allcare_db",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}
