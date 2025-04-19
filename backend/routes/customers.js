@@ -11,7 +11,8 @@ router.get('/', async (req, res) => {
     const result = customers.map(c => {
       const data = c.toJSON();
       data.language = data.language ? JSON.parse(data.language) : [];
-      data.preferredDates = data.preferredDates ? JSON.parse(data.preferredDates) : [];
+      // 解析 preferredDate 字段
+      data.preferredDate = data.preferredDate ? JSON.parse(data.preferredDate) : [];
       data.emergencyContact = data.emergencyContact ? JSON.parse(data.emergencyContact) : {};
       return data;
     });
@@ -50,26 +51,36 @@ router.put('/:id', async (req, res) => {
   const data = req.body;
   const newId = data.id;
 
-  if (data.language) data.language = JSON.stringify(data.language);
-  // 兼容 preferredDate（新字段）和 preferredDates（旧字段）
-  if (data.preferredDate && (!data.preferredDates || data.preferredDates.length === 0)) {
-    data.preferredDates = data.preferredDate;
+  // 序列化 language：数组 stringify，字符串保留，否则 null
+  if (Array.isArray(data.language)) {
+    data.language = JSON.stringify(data.language);
+  } else if (typeof data.language === 'string') {
+    // assume it's already a JSON string, do nothing
+  } else {
+    data.language = null;
   }
-  if (data.preferredDates) data.preferredDates = JSON.stringify(data.preferredDates);
-  if (data.emergencyContact) data.emergencyContact = JSON.stringify(data.emergencyContact);
+  // 序列化 preferredDate 字段：数组 stringify，字符串保持原样，否则 null
+  if (Array.isArray(data.preferredDate)) {
+    data.preferredDate = JSON.stringify(data.preferredDate);
+  } else if (typeof data.preferredDate === 'string') {
+    // assume valid JSON array string
+    // optionally you can validate with JSON.parse
+  } else {
+    data.preferredDate = null;
+  }
+  // 序列化 emergencyContact：对象 stringify，字符串保留，否则 null
+  if (data.emergencyContact && typeof data.emergencyContact === 'object') {
+    data.emergencyContact = JSON.stringify(data.emergencyContact);
+  } else if (typeof data.emergencyContact === 'string') {
+    // assume it's already a JSON string, do nothing
+  } else {
+    data.emergencyContact = null;
+  }
   // 保证所有新增字段都传递到模型
   data.birthday = data.birthday || null;
   data.sharedAttemptHours = data.sharedAttemptHours || null;
   data.pca_2 = data.pca_2 || null;
   data.pca_3 = data.pca_3 || null;
-  // preferredDate 字段处理：始终存储为字符串（JSON数组），否则为 null
-  if (Array.isArray(data.preferredDate) && data.preferredDate.length > 0) {
-    data.preferredDate = JSON.stringify(data.preferredDate);
-  } else if (typeof data.preferredDate === 'string' && data.preferredDate) {
-    data.preferredDate = JSON.stringify([data.preferredDate]);
-  } else {
-    data.preferredDate = null;
-  }
   data.healthNotes = data.healthNotes || null;
   data.lastCarePlanDate = data.lastCarePlanDate || null;
 

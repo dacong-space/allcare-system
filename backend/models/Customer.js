@@ -11,7 +11,7 @@ const Customer = sequelize.define('Customer', {
   name: { type: DataTypes.STRING, allowNull: false },
   age: DataTypes.STRING,
   gender: DataTypes.STRING,
-  language: DataTypes.TEXT, // JSON 字符串，存数组
+  language: DataTypes.STRING(255), // JSON 字符串，存数组
   phone: DataTypes.STRING,
   email: DataTypes.STRING,
   city: DataTypes.STRING,

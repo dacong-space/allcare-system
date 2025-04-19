@@ -329,6 +329,28 @@ const CustomerInfo = () => {
       ),
     },
     {
+      title: '语言',
+      dataIndex: 'language',
+      key: 'language',
+      width: 120,
+      render: (languages) => {
+        if (Array.isArray(languages) && languages.length > 0) {
+          if (languages.length === 1) {
+            return languages[0];
+          } else {
+            return (
+              <Tooltip title={languages.join(', ')}>
+                <span style={{ cursor: 'pointer' }}>
+                  {languages[0]} <small style={{ color: '#999', fontSize: '12px', verticalAlign: 'middle' }}>..</small>
+                </span>
+              </Tooltip>
+            );
+          }
+        }
+        return '-';
+      },
+    },
+    {
       title: 'Hr/week',
       dataIndex: 'hours',
       key: 'hours',
@@ -487,21 +509,73 @@ const CustomerInfo = () => {
 
   // 显示编辑客户模态框
   const handleEdit = (record) => {
+    console.log('handleEdit record:', record);
+    console.log('raw language:', record.language, typeof record.language);
+    console.log('raw preferredDate:', record.preferredDate, typeof record.preferredDate);
+    console.log('raw emergencyContact:', record.emergencyContact, typeof record.emergencyContact);
     setCurrentCustomer(record);
     setExpandedRowKeys([]);
 
+    // 解析语言字段，兼容 JSON 数组或逗号分隔字符串
+    const parsedLanguage = (() => {
+      const val = record.language;
+      if (!val) return [];
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try {
+          const arr = JSON.parse(val);
+          return Array.isArray(arr) ? arr : [String(arr)];
+        } catch {
+          return val.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      }
+      return [];
+    })();
+    // 解析偏好时间，兼容 JSON 数组或逗号分隔字符串
+    const parsedPreferredDate = (() => {
+      const val = record.preferredDate;
+      if (!val) return [];
+      let arr = [];
+      if (Array.isArray(val)) arr = val;
+      else if (typeof val === 'string') {
+        try { arr = JSON.parse(val); }
+        catch { arr = val.split(',').map(s => s.trim()).filter(Boolean); }
+      }
+      // 递归扁平化多层嵌套字符串数组
+      while (arr.length === 1 && typeof arr[0] === 'string') {
+        try {
+          const next = JSON.parse(arr[0]);
+          if (Array.isArray(next)) { arr = next; continue; }
+        } catch {
+          break;
+        }
+        break;
+      }
+      return Array.isArray(arr) ? arr : [];
+    })();
     // 处理日期格式
     const joinDateValue = record.joinDate ? dayjs(record.joinDate) : null;
 
-    // 准备紧急联系人信息
-    const emergencyContact = record.emergencyContact || {};
+    // 解析紧急联系人信息，兼容 JSON 字符串或对象
+    const parsedEmergencyContact = (() => {
+      const val = record.emergencyContact;
+      if (!val) return {};
+      if (typeof val === 'object') return val;
+      try { return JSON.parse(val); } catch { return {}; }
+    })();
+    // 统一使用对象形式的紧急联系人
+    const emergencyContact = parsedEmergencyContact;
+
+    console.log('parsedLanguage:', parsedLanguage, Array.isArray(parsedLanguage));
+    console.log('parsedPreferredDate:', parsedPreferredDate, Array.isArray(parsedPreferredDate));
+    console.log('parsedEmergencyContact:', parsedEmergencyContact, typeof parsedEmergencyContact);
 
     form.setFieldsValue({
-      id: record.id,
+      id: record.id, // 修复：确保PUT请求body中带id字段
       name: record.name,
       age: record.age,
       gender: record.gender,
-      language: JSON.parse(record.language || '[]'),
+      language: parsedLanguage,
       phone: record.phone,
       email: record.email,
       city: record.city,
@@ -511,26 +585,20 @@ const CustomerInfo = () => {
       joinCount: record.joinCount,
       status: record.status,
       points: record.points,
-      preferredDate: record.preferredDate
-        ? (typeof record.preferredDate === 'string'
-            ? JSON.parse(record.preferredDate)
-            : record.preferredDate)
-        : [],
+      preferredDate: parsedPreferredDate,
       rn: record.rn,
       pca: record.pca,
       supportPlanner: record.supportPlanner,
       lastVisitDate: record.lastVisitDate ? dayjs(record.lastVisitDate) : null,
-      // 新增字段初始化
+      // 新增字段
       birthday: record.birthday ? dayjs(record.birthday) : null,
       sharedAttemptHours: record.sharedAttemptHours,
       pca_2: record.pca_2,
       pca_3: record.pca_3,
       healthNotes: record.healthNotes || '',
       lastCarePlanDate: record.lastCarePlanDate ? dayjs(record.lastCarePlanDate) : null,
-      // 紧急联系人信息
-      emergencyContactName: emergencyContact.name || '',
-      emergencyContactRelationship: emergencyContact.relationship || '',
-      emergencyContactPhone: emergencyContact.phone || '',
+      // 紧急联系人信息对象
+      emergencyContact: emergencyContact,
       notes: record.notes || '' // 添加备注字段的初始化
     });
     setIsModalVisible(true);
@@ -565,20 +633,17 @@ const CustomerInfo = () => {
       if (!Array.isArray(values.preferredDate)) values.preferredDate = values.preferredDate ? [values.preferredDate] : [];
       if (currentCustomer) {
         // 编辑现有客户，调用后端接口
-        let emergencyContact = null;
-        if (values.emergencyContactName || values.emergencyContactRelationship || values.emergencyContactPhone) {
-          emergencyContact = {
-            name: values.emergencyContactName,
-            relationship: values.emergencyContactRelationship,
-            phone: values.emergencyContactPhone
-          };
+        // 处理紧急联系人信息
+        let ec = values.emergencyContact;
+        if (typeof ec === 'string') {
+          try { ec = JSON.parse(ec); } catch { ec = {}; }
         }
         const updatedCustomer = {
           id: values.id, // 修复：确保PUT请求body中带id字段
           name: values.name,
           age: values.age,
           gender: values.gender,
-          language: JSON.stringify(values.language || []),
+          language: values.language || [],
           phone: values.phone,
           email: values.email,
           city: values.city,
@@ -588,12 +653,12 @@ const CustomerInfo = () => {
           joinCount: values.joinCount,
           status: values.status,
           points: values.points,
-          preferredDate: JSON.stringify(values.preferredDate || []),
+          preferredDate: values.preferredDate || [],
           rn: values.rn,
           pca: values.pca,
           supportPlanner: values.supportPlanner,
           lastVisitDate: values.lastVisitDate,
-          emergencyContact: emergencyContact ? JSON.stringify(emergencyContact) : '',
+          emergencyContact: ec || {},
           notes: values.notes,
           // 新增字段
           birthday: values.birthday,
@@ -661,12 +726,17 @@ const CustomerInfo = () => {
         }
         // 处理 preferredDate 多选
         if (!Array.isArray(values.preferredDate)) values.preferredDate = values.preferredDate ? [values.preferredDate] : [];
+        // 处理紧急联系人信息
+        let ec = values.emergencyContact;
+        if (typeof ec === 'string') {
+          try { ec = JSON.parse(ec); } catch { ec = {}; }
+        }
         const newCustomer = {
           id: customerId,
           name: values.name,
           age: values.age,
           gender: values.gender,
-          language: JSON.stringify(values.language || []),
+          language: values.language || [],
           phone: values.phone,
           email: values.email,
           city: values.city,
@@ -676,11 +746,12 @@ const CustomerInfo = () => {
           joinCount: values.joinCount,
           status: values.status,
           points: values.points,
-          preferredDate: JSON.stringify(values.preferredDate || []),
+          preferredDate: values.preferredDate || [],
           rn: values.rn,
           pca: values.pca,
           supportPlanner: values.supportPlanner,
           lastVisitDate: values.lastVisitDate,
+          emergencyContact: ec || {},
           notes: values.notes || '',
           // 新增字段
           birthday: values.birthday,
@@ -690,15 +761,6 @@ const CustomerInfo = () => {
           healthNotes: values.healthNotes,
           lastCarePlanDate: values.lastCarePlanDate
         };
-
-        // 添加紧急联系人信息（如果有）
-        if (values.emergencyContactName || values.emergencyContactRelationship || values.emergencyContactPhone) {
-          newCustomer.emergencyContact = JSON.stringify({
-            name: values.emergencyContactName,
-            relationship: values.emergencyContactRelationship,
-            phone: values.emergencyContactPhone
-          });
-        }
 
         console.log('【DEBUG】提交新客户数据:', newCustomer);
         fetch(`${API_BASE}/customers`, {
@@ -1170,16 +1232,21 @@ const CustomerInfo = () => {
           <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
             <h3>紧急联系人信息</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <Form.Item name="emergencyContactName" label="紧急联系人姓名">
+              <Form.Item name={['emergencyContact', 'name']} label="紧急联系人姓名">
                 <Input placeholder="请输入姓名" />
               </Form.Item>
-              <Form.Item name="emergencyContactRelationship" label="关系">
-                <Select placeholder="请选择关系"><Select.Option value="父母">父母</Select.Option><Select.Option value="配偶">配偶</Select.Option><Select.Option value="子女">子女</Select.Option><Select.Option value="朋友">朋友</Select.Option></Select>
+              <Form.Item name={['emergencyContact', 'relationship']} label="关系">
+                <Select placeholder="请选择关系">
+                  <Select.Option value="父母">父母</Select.Option>
+                  <Select.Option value="配偶">配偶</Select.Option>
+                  <Select.Option value="子女">子女</Select.Option>
+                  <Select.Option value="朋友">朋友</Select.Option>
+                </Select>
+              </Form.Item>
+              <Form.Item name={['emergencyContact', 'phone']} label="紧急联系人电话">
+                <Input placeholder="请输入电话" />
               </Form.Item>
             </div>
-            <Form.Item name="emergencyContactPhone" label="紧急联系人电话">
-              <Input placeholder="请输入电话" />
-            </Form.Item>
           </div>
 
           {/* 备注信息 */}
