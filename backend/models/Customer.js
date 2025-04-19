@@ -11,7 +11,13 @@ const Customer = sequelize.define('Customer', {
   name: { type: DataTypes.STRING, allowNull: false },
   age: DataTypes.STRING,
   gender: DataTypes.STRING,
-  language: DataTypes.STRING(255), // JSON 字符串，存数组
+  language: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    set(value) {
+      this.setDataValue('language', typeof value === 'string' ? value : JSON.stringify(value || []));
+    }
+  },
   phone: DataTypes.STRING,
   email: DataTypes.STRING,
   city: DataTypes.STRING,
@@ -26,12 +32,24 @@ const Customer = sequelize.define('Customer', {
   supportPlanner: DataTypes.STRING,
   address: DataTypes.STRING,
   notes: DataTypes.TEXT,
-  emergencyContact: DataTypes.TEXT, // JSON 字符串，单个对象
+  emergencyContact: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    set(value) {
+      this.setDataValue('emergencyContact', typeof value === 'string' ? value : JSON.stringify(value || {}));
+    }
+  },
   birthday: DataTypes.STRING, // 生日，类型保持字符串，兼容表结构
   sharedAttemptHours: DataTypes.STRING, // Shared Attempt Hours
   pca_2: DataTypes.STRING, // PCA_2
   pca_3: DataTypes.STRING, // PCA_3
-  preferredDate: DataTypes.STRING, // preferredDate（小写，和表结构一致）
+  preferredDate: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    set(value) {
+      this.setDataValue('preferredDate', typeof value === 'string' ? value : JSON.stringify(value || []));
+    }
+  },
   healthNotes: DataTypes.TEXT, // healthNotes
   lastCarePlanDate: DataTypes.STRING // 最新Care Plan日期
 });

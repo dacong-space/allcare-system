@@ -26,6 +26,21 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const data = req.body;
+    // 序列化 language、preferredDate、emergencyContact 为 JSON 字符串
+    data.language = typeof data.language === 'string' ? data.language : JSON.stringify(data.language || []);
+    data.preferredDate = typeof data.preferredDate === 'string' ? data.preferredDate : JSON.stringify(data.preferredDate || []);
+    data.emergencyContact = typeof data.emergencyContact === 'string' ? data.emergencyContact : JSON.stringify(data.emergencyContact || {});
+    console.log('【DEBUG 后端序列化后数据】', { language: data.language, preferredDate: data.preferredDate, emergencyContact: data.emergencyContact });
+    console.log('【DEBUG type】language:', typeof data.language, data.language);
+    console.log('【DEBUG type】preferredDate:', typeof data.preferredDate, data.preferredDate);
+    console.log('【DEBUG type】emergencyContact:', typeof data.emergencyContact, data.emergencyContact);
+    // 保证所有新增字段都传递到模型
+    data.birthday = data.birthday || null;
+    data.sharedAttemptHours = data.sharedAttemptHours || null;
+    data.pca_2 = data.pca_2 || null;
+    data.pca_3 = data.pca_3 || null;
+    data.healthNotes = data.healthNotes || null;
+    data.lastCarePlanDate = data.lastCarePlanDate || null;
     console.log('【DEBUG 后端收到数据】', data);
     const Employee = require('../models/Employee');
     // 检查客户表和员工表ID唯一性

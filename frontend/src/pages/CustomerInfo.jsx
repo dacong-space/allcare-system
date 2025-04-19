@@ -36,11 +36,26 @@ import {
   DownloadOutlined,
   FileOutlined,
   FileExcelOutlined,
-  CodeOutlined
+  CodeOutlined,
+  ConsoleSqlOutlined
 } from '@ant-design/icons';
-import { MinimalistManIcon, MinimalistWomanIcon } from '../components/CustomIcons';
+import {
+  MinimalistManIcon,
+  MinimalistWomanIcon
+} from '../components/CustomIcons';
 // import ScrollIndicator from '../components/ScrollIndicator';
 import styled from 'styled-components';
+import { createGlobalStyle } from 'styled-components';
+
+const GlobalStyle = createGlobalStyle`
+  .edited-row {
+    animation: highlightFade 3s forwards;
+  }
+  @keyframes highlightFade {
+    from { background-color: rgba(135, 206, 250, 0.5); }
+    to { background-color: transparent; }
+  }
+`;
 
 const { Title } = Typography;
 
@@ -228,9 +243,15 @@ const CustomerInfo = () => {
   const [form] = Form.useForm();
   const notesContainerRefs = useRef({});
 
-  
+  useEffect(() => {
+    let timer;
+    if (editedRowKey) {
+      timer = setTimeout(() => setEditedRowKey(null), 3000);
+    }
+    return () => timer && clearTimeout(timer);
+  }, [editedRowKey]);
 
-// 处理行展开/收起
+  // 处理行展开/收起
   const handleExpand = (expanded, record) => {
     if (expanded) {
       // 展开当前行，自动收起其他行
@@ -252,8 +273,16 @@ const CustomerInfo = () => {
       .then(res => res.json())
       .then(result => {
         if (result && result.code === 0) {
-          setCustomerData(result.data);
-          setCustomerCount(result.data.length);
+          // 初始按下次家访日期排序 (120天后)
+          const sorted = result.data.sort((a, b) => {
+            const aDate = a.lastVisitDate ? new Date(a.lastVisitDate) : new Date(0);
+            const bDate = b.lastVisitDate ? new Date(b.lastVisitDate) : new Date(0);
+            aDate.setDate(aDate.getDate() + 120);
+            bDate.setDate(bDate.getDate() + 120);
+            return aDate - bDate;
+          });
+          setCustomerData(sorted);
+          setCustomerCount(sorted.length);
         } else {
           setCustomerData([]);
           setCustomerCount(0);
@@ -274,7 +303,10 @@ const CustomerInfo = () => {
     (customer.rn && customer.rn.toLowerCase().includes(searchText.toLowerCase())) ||
     (customer.pca && customer.pca.toLowerCase().includes(searchText.toLowerCase())) ||
     customer.city.toLowerCase().includes(searchText.toLowerCase()) ||
-    (customer.hours && customer.hours.toLowerCase().includes(searchText.toLowerCase())) ||
+    (Array.isArray(customer.language)
+      ? customer.language.some(lang => lang.toLowerCase().includes(searchText.toLowerCase()))
+      : (customer.language || '').toLowerCase().includes(searchText.toLowerCase())
+    ) ||
     (customer.status && customer.status.toLowerCase().includes(searchText.toLowerCase()))
   );
 
@@ -311,12 +343,16 @@ const CustomerInfo = () => {
       dataIndex: 'id',
       key: 'id',
       width: 120,
+      sorter: (a, b) => a.id.localeCompare(b.id),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: '姓名',
       dataIndex: 'name',
       key: 'name',
       width: 150,
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      sortDirections: ['ascend', 'descend'],
       render: (text, record) => (
         <Space>
           {record.gender === '男' ? (
@@ -333,6 +369,12 @@ const CustomerInfo = () => {
       dataIndex: 'language',
       key: 'language',
       width: 120,
+      sorter: (a, b) => {
+        const la = Array.isArray(a.language) ? a.language.join(',') : a.language || '';
+        const lb = Array.isArray(b.language) ? b.language.join(',') : b.language || '';
+        return la.localeCompare(lb);
+      },
+      sortDirections: ['ascend', 'descend'],
       render: (languages) => {
         if (Array.isArray(languages) && languages.length > 0) {
           if (languages.length === 1) {
@@ -368,6 +410,8 @@ const CustomerInfo = () => {
       dataIndex: 'city',
       key: 'city',
       width: 120,
+      sorter: (a, b) => (a.city || '').localeCompare(b.city || ''),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: 'RN',
@@ -438,6 +482,17 @@ const CustomerInfo = () => {
       dataIndex: 'nextCarePlanDate',
       key: 'nextCarePlanDate',
       width: 140,
+      sorter: (a, b) => {
+        if (!a.lastCarePlanDate && !b.lastCarePlanDate) return 0;
+        if (!a.lastCarePlanDate) return 1;
+        if (!b.lastCarePlanDate) return -1;
+        const aDate = new Date(a.lastCarePlanDate);
+        const bDate = new Date(b.lastCarePlanDate);
+        aDate.setDate(aDate.getDate() + 365);
+        bDate.setDate(bDate.getDate() + 365);
+        return aDate - bDate;
+      },
+      sortDirections: ['ascend', 'descend'],
       render: (_, record) => {
         if (record.lastCarePlanDate) {
           const careDate = new Date(record.lastCarePlanDate);
@@ -484,6 +539,12 @@ const CustomerInfo = () => {
                 label: '删除',
                 danger: true,
                 onClick: () => showDeleteConfirm(record)
+              },
+              {
+                key: '3',
+                icon: <ConsoleSqlOutlined />,
+                label: '数据',
+                onClick: () => console.log('数据结构:', record)
               },
             ],
           }}
@@ -693,6 +754,7 @@ const CustomerInfo = () => {
                   if (result && result.code === 0) {
                     setCustomerData(result.data);
                     setCustomerCount(result.data.length);
+                    setEditedRowKey(currentCustomer.id);
                   }
                 });
             } else {
@@ -1045,6 +1107,7 @@ const CustomerInfo = () => {
 
   return (
     <PageContainer>
+      <GlobalStyle />
       <PageHeader>
         <h2>客户信息管理</h2>
         <SearchContainer>
@@ -1138,10 +1201,10 @@ const CustomerInfo = () => {
             <Form.Item name="id" label="ID (MA#)" rules={[{ required: true, message: '请输入ID' }]}>
               <Input placeholder="请输入ID" disabled={!!currentCustomer} />
             </Form.Item>
-            <Form.Item name="gender" label="性别" rules={[{ required: true, message: '请选择性别' }]}>
+            <Form.Item name="gender" label="性别">
               <Select><Select.Option value="男">男</Select.Option><Select.Option value="女">女</Select.Option></Select>
             </Form.Item>
-            <Form.Item name="language" label="语言" rules={[{ required: true, message: '请选择语言' }]}>
+            <Form.Item name="language" label="语言">
               <Select mode="multiple" placeholder="请选择语言" style={{ width: '100%' }}>
                 <Select.Option value="中文">中文</Select.Option>
                 <Select.Option value="粤语">粤语</Select.Option>
@@ -1151,20 +1214,36 @@ const CustomerInfo = () => {
                 <Select.Option value="法语">法语</Select.Option>
               </Select>
             </Form.Item>
-            <Form.Item name="age" label="年龄" rules={[{ required: true, message: '请输入年龄' }]}>
+            <Form.Item name="age" label="年龄">
               <Input type="number" min={1} max={120} placeholder="请输入年龄" />
             </Form.Item>
             <Form.Item name="birthday" label="生日">
               <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择生日" />
             </Form.Item>
-            <Form.Item name="hours" label="Hours" rules={[{ required: true, message: '请输入Hours' }]}>
+            <Form.Item name="hours" label="Hours">
               <Input placeholder="请输入Hours" />
             </Form.Item>
             <Form.Item name="sharedAttemptHours" label="Shared Attempt Hours">
               <Input placeholder="请输入Shared Attempt Hours" />
             </Form.Item>
-            <Form.Item name="phone" label="手机号" rules={[{ required: true, message: '请输入手机号' }]}>
-              <Input placeholder="请输入手机号" />
+            <Form.Item name="phone" label="手机号">
+              <Input
+                placeholder="请输入手机号"
+                maxLength={14}
+                onChange={e => {
+                  const val = e.target.value;
+                  const digits = val.replace(/\D/g, '').slice(0, 10);
+                  let formatted = '';
+                  if (digits.length <= 3) {
+                    formatted = digits;
+                  } else if (digits.length <= 6) {
+                    formatted = `(${digits.slice(0, 3)})${digits.slice(3)}`;
+                  } else {
+                    formatted = `(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`;
+                  }
+                  form.setFieldsValue({ phone: formatted });
+                }}
+              />
             </Form.Item>
             <Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '请输入有效邮箱' }]}>
               <Input placeholder="请输入邮箱" />
@@ -1172,7 +1251,7 @@ const CustomerInfo = () => {
             <Form.Item name="points" label="积分">
               <Input type="number" min={0} placeholder="请输入积分" />
             </Form.Item>
-            <Form.Item name="status" label="状态" rules={[{ required: true, message: '请选择状态' }]}>
+            <Form.Item name="status" label="状态">
               <Select><Select.Option value="active">活跃</Select.Option><Select.Option value="inactive">不活跃</Select.Option><Select.Option value="pending">待定</Select.Option></Select>
             </Form.Item>
             <Form.Item name="rn" label="RN">
