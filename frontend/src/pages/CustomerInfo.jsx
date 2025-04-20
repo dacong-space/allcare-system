@@ -34,6 +34,7 @@ import {
   EnvironmentOutlined,
   EllipsisOutlined,
   DownloadOutlined,
+  FilePdfOutlined,
   FileOutlined,
   FileExcelOutlined,
   CodeOutlined,
@@ -46,6 +47,8 @@ import {
 // import ScrollIndicator from '../components/ScrollIndicator';
 import styled from 'styled-components';
 import { createGlobalStyle } from 'styled-components';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const GlobalStyle = createGlobalStyle`
   .edited-row {
@@ -235,6 +238,7 @@ const DetailItem = styled.div`
 const CustomerInfo = () => {
   const [searchText, setSearchText] = useState('');
   const [customerData, setCustomerData] = useState([]);
+  const [employees, setEmployees] = useState([]); // Add missing employees state
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState(null);
@@ -242,6 +246,9 @@ const CustomerInfo = () => {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [form] = Form.useForm();
   const notesContainerRefs = useRef({});
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState(null);
+  const previewRef = useRef(null);
 
   useEffect(() => {
     let timer;
@@ -291,9 +298,22 @@ const CustomerInfo = () => {
       .catch(() => {
         setCustomerData([]);
         setCustomerCount(0);
+        message.error('加载客户列表失败'); // Show error message on customer fetch failure
       });
   }, []);
 
+  // 拉取员工列表用于匹配手机号
+  useEffect(() => {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    fetch('/api/employees', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result?.code === 0) setEmployees(result.data);
+      })
+      .catch(() => message.error('加载员工列表失败'));
+  }, []);
 
   // 过滤客户数据
   const filteredCustomers = customerData.filter(customer =>
@@ -447,32 +467,15 @@ const CustomerInfo = () => {
       title: '下次家访日期',
       key: 'nextVisitDate',
       width: 140,
-      render: (_, record) => {
-        // 如果有最新家访日期，计算下次家访日期（120天后）
-        if (record.lastVisitDate) {
-          const lastVisitDate = new Date(record.lastVisitDate);
-          const nextVisitDate = new Date(lastVisitDate);
-          nextVisitDate.setDate(nextVisitDate.getDate() + 120);
-
-          // 格式化为 MM/DD/YYYY
-          const month = (nextVisitDate.getMonth() + 1).toString().padStart(2, '0');
-          const day = nextVisitDate.getDate().toString().padStart(2, '0');
-          const year = nextVisitDate.getFullYear();
-
-          return `${month}/${day}/${year}`;
-        }
-        return '-';
-      },
+      render: (_, record) => record.lastVisitDate
+        ? dayjs(record.lastVisitDate).add(120, 'day').format('MM/DD/YYYY')
+        : '-',
       sorter: (a, b) => {
         if (!a.lastVisitDate && !b.lastVisitDate) return 0;
         if (!a.lastVisitDate) return 1;
         if (!b.lastVisitDate) return -1;
-
-        const aDate = new Date(a.lastVisitDate);
-        const bDate = new Date(b.lastVisitDate);
-        aDate.setDate(aDate.getDate() + 120);
-        bDate.setDate(bDate.getDate() + 120);
-
+        const aDate = dayjs(a.lastVisitDate).add(120, 'day').valueOf();
+        const bDate = dayjs(b.lastVisitDate).add(120, 'day').valueOf();
         return aDate - bDate;
       },
       sortDirections: ['ascend', 'descend'],
@@ -482,28 +485,13 @@ const CustomerInfo = () => {
       dataIndex: 'nextCarePlanDate',
       key: 'nextCarePlanDate',
       width: 140,
-      sorter: (a, b) => {
-        if (!a.lastCarePlanDate && !b.lastCarePlanDate) return 0;
-        if (!a.lastCarePlanDate) return 1;
-        if (!b.lastCarePlanDate) return -1;
-        const aDate = new Date(a.lastCarePlanDate);
-        const bDate = new Date(b.lastCarePlanDate);
-        aDate.setDate(aDate.getDate() + 365);
-        bDate.setDate(bDate.getDate() + 365);
-        return aDate - bDate;
-      },
+      sorter: (a, b) =>
+        ((a.lastCarePlanDate ? dayjs(a.lastCarePlanDate).add(365, 'day').valueOf() : 0) -
+         (b.lastCarePlanDate ? dayjs(b.lastCarePlanDate).add(365, 'day').valueOf() : 0)),
       sortDirections: ['ascend', 'descend'],
-      render: (_, record) => {
-        if (record.lastCarePlanDate) {
-          const careDate = new Date(record.lastCarePlanDate);
-          careDate.setDate(careDate.getDate() + 365);
-          const month = (careDate.getMonth() + 1).toString().padStart(2, '0');
-          const day = careDate.getDate().toString().padStart(2, '0');
-          const year = careDate.getFullYear();
-          return `${month}/${day}/${year}`;
-        }
-        return '-';
-      },
+      render: (_, record) => record.lastCarePlanDate
+        ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM/DD/YYYY')
+        : '-',
     },
     {
       title: '状态',
@@ -535,9 +523,9 @@ const CustomerInfo = () => {
               },
               {
                 key: '2',
-                icon: <DownloadOutlined />,
+                icon: <FilePdfOutlined />,
                 label: '导出',
-                onClick: () => handleExport('excel', record)
+                onClick: () => handleExport(record)
               },
               {
                 key: '3',
@@ -876,56 +864,76 @@ const CustomerInfo = () => {
     });
   };
 
-  // 处理导出单个客户数据
-  const handleExport = (type, record) => {
+  // 弹出导出预览
+  const handleExport = (record) => {
+    setPreviewRecord(record);
+    setPreviewVisible(true);
+  };
+
+  // 下载并生成PDF
+  const handleDownload = async () => {
     try {
-      switch (type) {
-        case 'json': {
-          const jsonData = JSON.stringify(record, null, 2);
-          const blob = new Blob([jsonData], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `客户_${record.id}.json`;
-          link.click();
-          URL.revokeObjectURL(url);
-          message.success('客户数据已导出为JSON格式');
-          break;
-        }
-        case 'excel': {
-          const BOM = '\uFEFF';
-          const fieldOrder = [
-            'id','name','age','gender','language','phone','email','city','address','hours','joinDate','joinCount','status','points','preferredDate','rn','pca','supportPlanner','lastVisitDate'
-          ];
-          const existing = Object.keys(record).filter(
-            key => record[key] != null && typeof record[key] !== 'object'
-          );
-          const fields = fieldOrder.filter(f => existing.includes(f));
-          existing.forEach(f => { if (!fields.includes(f)) fields.push(f); });
-          let csv = BOM + fields.join(',') + '\n';
-          const row = fields.map(f => {
-            const v = record[f];
-            if (v == null) return '';
-            return `"${String(v).replace(/"/g, '""')}"`;
-          }).join(',');
-          csv += row + '\n';
-          const blob2 = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-          const url2 = URL.createObjectURL(blob2);
-          const link2 = document.createElement('a');
-          link2.href = url2;
-          link2.download = `客户_${record.id}.csv`;
-          link2.click();
-          URL.revokeObjectURL(url2);
-          message.success('客户数据已导出为Excel格式');
-          break;
-        }
-        default:
-          message.error('不支持的导出格式');
-      }
+      const record = previewRecord;
+      const getPhone = name => employees.find(emp => emp.name === name)?.phone || '';
+      const pcaPhone = getPhone(record.pca);
+      const pca2Phone = getPhone(record.pca_2);
+      const pca3Phone = getPhone(record.pca_3);
+      const nextVisitDate = record.lastVisitDate ? dayjs(record.lastVisitDate).add(120, 'day').format('MM/DD/YYYY') : '';
+      const nextCarePlanDate = record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM/DD/YYYY') : '';
+      const canvas = await html2canvas(previewRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const props = doc.getImageProperties(imgData);
+      const pageHeight = (props.height * pageWidth) / props.width;
+      doc.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+      doc.save(`客户_${record.id}.pdf`);
+      setPreviewVisible(false);
     } catch (err) {
-      console.error('导出时出错:', err);
-      message.error('导出数据时出错');
+      console.error(err);
+      message.error('下载失败');
     }
+  };
+
+  // 渲染预览表格
+  const renderPreviewTable = (record) => {
+    if (!record) return null;
+    const getPhone = name => employees.find(emp => emp.name === name)?.phone || '';
+    const pcaPhone = getPhone(record.pca);
+    const pca2Phone = getPhone(record.pca_2);
+    const pca3Phone = getPhone(record.pca_3);
+    const nextVisitDate = record.lastVisitDate ? dayjs(record.lastVisitDate).add(120, 'day').format('MM/DD/YYYY') : '';
+    const nextCarePlanDate = record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM/DD/YYYY') : '';
+    const rows = [
+      ['Client Name', record.name],
+      ['Client MA#', record.id],
+      ['Phone#', record.phone],
+      ['Address', record.address],
+      ['Reass', nextVisitDate],
+      ['Re-CarePlan', nextCarePlanDate],
+      ['RN', record.rn],
+      ['PCA', record.pca || ''],
+      ['PCA#', pcaPhone],
+      ['PCA2', record.pca_2 || ''],
+      ['PCA2#', pca2Phone],
+      ['PCA3', record.pca_3 || ''],
+      ['PCA3#', pca3Phone],
+      ['Hours', record.hours || ''],
+      ['Shared Atte Hours', record.sharedAttemptHours || ''],
+      ['Note', record.healthNotes || ''],
+    ];
+    return (
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <tbody>
+          {rows.map(([label, v]) => (
+            <tr key={label}>
+              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold' }}>{label}</td>
+              <td style={{ border: '1px solid #000', padding: '8px' }}>{v}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
   };
 
   // 处理删除
@@ -1310,6 +1318,24 @@ const CustomerInfo = () => {
       >
         <p>确定要删除客户 <strong>{currentCustomer?.name}</strong> 的信息吗？此操作不可撤销。</p>
       </Modal>
+
+      {/* 导出预览 */}
+      {previewVisible && (
+        <Modal
+          visible={previewVisible}
+          title="导出预览"
+          width={800}
+          onCancel={() => setPreviewVisible(false)}
+          footer={[
+            <Button key="download" type="primary" onClick={handleDownload}>下载PDF</Button>,
+            <Button key="cancel" onClick={() => setPreviewVisible(false)}>取消</Button>
+          ]}
+        >
+          <div ref={previewRef} style={{ padding: '20px', background: '#fff' }}>
+            {renderPreviewTable(previewRecord)}
+          </div>
+        </Modal>
+      )}
     </PageContainer>
   );
 };
