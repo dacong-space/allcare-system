@@ -1304,9 +1304,11 @@ const CustomerInfo = () => {
               </Form.Item>
               <Form.Item name={['emergencyContact', 'relationship']} label="关系">
                 <Select placeholder="请选择关系">
-                  <Select.Option value="父母">父母</Select.Option>
+                  <Select.Option value="父亲">父亲</Select.Option>
+                  <Select.Option value="母亲">母亲</Select.Option>
+                  <Select.Option value="儿子">儿子</Select.Option>
+                  <Select.Option value="女儿">女儿</Select.Option>
                   <Select.Option value="配偶">配偶</Select.Option>
-                  <Select.Option value="子女">子女</Select.Option>
                   <Select.Option value="朋友">朋友</Select.Option>
                 </Select>
               </Form.Item>
