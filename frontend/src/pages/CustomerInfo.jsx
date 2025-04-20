@@ -625,6 +625,11 @@ const CustomerInfo = () => {
     console.log('parsedPreferredDate:', parsedPreferredDate, Array.isArray(parsedPreferredDate));
     console.log('parsedEmergencyContact:', parsedEmergencyContact, typeof parsedEmergencyContact);
 
+    // 在 handleEdit 顶部，添加配偶ID计算（直接或互惠）
+    const directSpouseId = record.spouse && record.spouse !== record.id ? record.spouse : null;
+    const reciprocalSpouseId = !directSpouseId ? customerData.find(item => item.spouse === record.id)?.id : null;
+    const spouseId = directSpouseId || reciprocalSpouseId;
+
     form.setFieldsValue({
       id: record.id, // 修复：确保PUT请求body中带id字段
       name: record.name,
@@ -655,6 +660,8 @@ const CustomerInfo = () => {
       // 紧急联系人信息对象
       emergencyContact: emergencyContact,
       notes: record.notes || '' // 添加备注字段的初始化
+      // 在 form.setFieldsValue 中添加 spouse 初始值
+      , spouse: spouseId,
     });
     setIsModalVisible(true);
   };
@@ -721,7 +728,8 @@ const CustomerInfo = () => {
           pca_2: values.pca_2,
           pca_3: values.pca_3,
           healthNotes: values.healthNotes,
-          lastCarePlanDate: values.lastCarePlanDate
+          lastCarePlanDate: values.lastCarePlanDate,
+          spouse: values.spouse
         };
         fetch(`${API_BASE}/customers/${currentCustomer.id}`, {
           method: 'PUT',
@@ -815,7 +823,8 @@ const CustomerInfo = () => {
           pca_2: values.pca_2,
           pca_3: values.pca_3,
           healthNotes: values.healthNotes,
-          lastCarePlanDate: values.lastCarePlanDate
+          lastCarePlanDate: values.lastCarePlanDate,
+          spouse: values.spouse
         };
 
         console.log('【DEBUG】提交新客户数据:', newCustomer);
@@ -979,6 +988,15 @@ const CustomerInfo = () => {
 
   // 展开行渲染
   const expandedRowRender = (record) => {
+    // 处理配偶关系（直接或互惠）
+    const directSpouseId = record.spouse && record.spouse !== record.id ? record.spouse : null;
+    const reciprocalSpouseId = !directSpouseId ? customerData.find(item => item.spouse === record.id)?.id : null;
+    const spouseId = directSpouseId || reciprocalSpouseId;
+    const spouseRec = spouseId ? customerData.find(item => item.id === spouseId) || {} : {};
+    const spouseLabel = spouseRec.id || '';
+    const spouseName = spouseRec.name || '';
+    const spouseReass = spouseRec.lastVisitDate ? dayjs(spouseRec.lastVisitDate).add(120, 'day').format('YYYY-MM-DD') : '无';
+    const spouseReCarePlan = spouseRec.lastCarePlanDate ? dayjs(spouseRec.lastCarePlanDate).add(365, 'day').format('YYYY-MM-DD') : '无';
     return (
       <CustomerDetailCard>
         <Row gutter={[24, 16]}>
@@ -1025,6 +1043,9 @@ const CustomerInfo = () => {
             <DetailItem><span className="label">姓名:</span><span className="value">{record.emergencyContact?.name || '无'}</span></DetailItem>
             <DetailItem><span className="label">电话:</span><span className="value">{record.emergencyContact?.phone || '无'}</span></DetailItem>
             <DetailItem><span className="label">关系:</span><span className="value">{record.emergencyContact?.relationship || '无'}</span></DetailItem>
+            <DetailItem><span className="label">配偶:</span><span className="value">{spouseLabel ? `${spouseLabel} - ${spouseName}` : '无'}</span></DetailItem>
+            <DetailItem><span className="label">配偶Reass:</span><span className="value">{spouseReass}</span></DetailItem>
+            <DetailItem><span className="label">配偶Re-CarePlan:</span><span className="value">{spouseReCarePlan}</span></DetailItem>
           </Col>
           <Col span={8}>
             <Title level={5}>其他信息</Title>
@@ -1211,6 +1232,9 @@ const CustomerInfo = () => {
             </Form.Item>
             <Form.Item name="email" label="邮箱" rules={[{ type: 'email', message: '请输入有效邮箱' }]}>
               <Input placeholder="请输入邮箱" />
+            </Form.Item>
+            <Form.Item name="spouse" label="配偶 (请填入MA#)">
+              <Input placeholder="请输入配偶姓名" />
             </Form.Item>
             <Form.Item name="points" label="积分">
               <Input type="number" min={0} placeholder="请输入积分" />

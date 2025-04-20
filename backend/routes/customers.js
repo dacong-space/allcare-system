@@ -41,6 +41,7 @@ router.post('/', async (req, res) => {
     data.pca_3 = data.pca_3 || null;
     data.healthNotes = data.healthNotes || null;
     data.lastCarePlanDate = data.lastCarePlanDate || null;
+    data.spouse = data.spouse || null;  // 新增配偶字段
     console.log('【DEBUG 后端收到数据】', data);
     const Employee = require('../models/Employee');
     // 检查客户表和员工表ID唯一性
@@ -98,6 +99,7 @@ router.put('/:id', async (req, res) => {
   data.pca_3 = data.pca_3 || null;
   data.healthNotes = data.healthNotes || null;
   data.lastCarePlanDate = data.lastCarePlanDate || null;
+  data.spouse = data.spouse || null;  // 新增配偶字段
 
   const t = await Customer.sequelize.transaction();
   try {

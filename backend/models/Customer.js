@@ -20,6 +20,7 @@ const Customer = sequelize.define('Customer', {
   },
   phone: DataTypes.STRING,
   email: DataTypes.STRING,
+  spouse: DataTypes.STRING, // 配偶姓名，新增字段
   city: DataTypes.STRING,
   hours: DataTypes.STRING,
   joinDate: DataTypes.STRING,

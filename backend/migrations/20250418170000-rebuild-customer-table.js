@@ -12,6 +12,7 @@ module.exports = {
       language: Sequelize.TEXT,
       phone: Sequelize.STRING,
       email: Sequelize.STRING,
+      spouse: Sequelize.STRING,
       city: Sequelize.STRING,
       hours: Sequelize.STRING,
       joinDate: Sequelize.STRING,
