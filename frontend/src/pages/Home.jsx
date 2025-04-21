@@ -502,36 +502,31 @@ const Home = () => {
 
       {/* 核心数据统计 */}
       <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
-        <Col xs={24} md={8}>
-          <StatCard iconBg="rgba(59, 130, 246, 0.1)" iconColor="#3B82F6" valueColor="#3B82F6">
-            <div className="stat-icon">
-              <UserOutlined />
-            </div>
-            <Statistic
-              title="客户总数"
-              value={customerCount}
-            />
-            <div className={`stat-trend ${customerGrowth >= 0 ? 'positive' : 'negative'}`}>
-              {customerGrowth >= 0 ? '↑' : '↓'} {Math.abs(customerGrowth)}% 较上月
-            </div>
-          </StatCard>
-        </Col>
-
-        <Col xs={24} md={8}>
-          <StatCard iconBg="rgba(16, 185, 129, 0.1)" iconColor="#10B981" valueColor="#10B981">
-            <div className="stat-icon">
-              <TeamOutlined />
-            </div>
-            <Statistic
-              title="员工总数"
-              value={employeeCount}
-            />
-            <div className={`stat-trend ${employeeGrowth >= 0 ? 'positive' : 'negative'}`}>
-              {employeeGrowth >= 0 ? '↑' : '↓'} {Math.abs(employeeGrowth)}% 较上月
+        {/* 合并 客户总数 和 员工总数 */}
+        <Col xs={24} md={12}>
+          <StatCard>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '48%' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                  <UserOutlined style={{ fontSize: '20px', color: '#3B82F6' }} />
+                </div>
+                <Statistic title="客户总数" value={customerCount} style={{ fontSize: '20px', margin: 0 }} />
+                <div style={{ fontSize: '12px', marginTop: '4px', color: customerGrowth >= 0 ? '#10B981' : '#EF4444' }}>
+                  {customerGrowth >= 0 ? '↑' : '↓'} {Math.abs(customerGrowth)}% 较上月
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '48%' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                  <TeamOutlined style={{ fontSize: '20px', color: '#10B981' }} />
+                </div>
+                <Statistic title="员工总数" value={employeeCount} style={{ fontSize: '20px', textAlign: 'right', margin: 0 }} />
+                <div style={{ fontSize: '12px', marginTop: '4px', color: employeeGrowth >= 0 ? '#10B981' : '#EF4444' }}>
+                  {employeeGrowth >= 0 ? '↑' : '↓'} {Math.abs(employeeGrowth)}% 较上月
+                </div>
+              </div>
             </div>
           </StatCard>
         </Col>
-
         <Col xs={24} md={8}>
           <StatCard iconBg="rgba(245, 158, 11, 0.1)" iconColor="#F59E0B" valueColor="#F59E0B">
             <div className="stat-icon">

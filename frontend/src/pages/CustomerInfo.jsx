@@ -251,35 +251,13 @@ const CustomerInfo = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [currentCustomer, setCurrentCustomer] = useState(null);
-  const [editedRowKey, setEditedRowKey] = useState(null);
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [form] = Form.useForm();
   const notesContainerRefs = useRef({});
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewRecord, setPreviewRecord] = useState(null);
   const previewRef = useRef(null);
-  const [sortedInfo, setSortedInfo] = useState({ columnKey: 'nextVisitDate', order: 'ascend' });
 
-  useEffect(() => {
-    let timer;
-    if (editedRowKey) {
-      timer = setTimeout(() => setEditedRowKey(null), 3000);
-    }
-    return () => timer && clearTimeout(timer);
-  }, [editedRowKey]);
-
-  // 处理行展开/收起
-  const handleExpand = (expanded, record) => {
-    if (expanded) {
-      // 展开当前行，自动收起其他行
-      setExpandedRowKeys([record.id]);
-    } else {
-      // 收起当前行
-      setExpandedRowKeys([]);
-    }
-  };
-
-  // 初始化客户数据（仅从后端接口获取）
   useEffect(() => {
     api.get('/customers')
       .then(({ data }) => {
@@ -329,6 +307,15 @@ const CustomerInfo = () => {
     ) ||
     (customer.status && customer.status.toLowerCase().includes(searchText.toLowerCase()))
   );
+  // 默认按“下次家访日期”升序排序，无默认高亮
+  const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+    if (!a.lastVisitDate && !b.lastVisitDate) return 0;
+    if (!a.lastVisitDate) return 1;
+    if (!b.lastVisitDate) return -1;
+    const aDate = dayjs(a.lastVisitDate).add(120, 'day').valueOf();
+    const bDate = dayjs(b.lastVisitDate).add(120, 'day').valueOf();
+    return aDate - bDate;
+  });
 
   // 获取状态标签
   const getStatusTag = (status) => {
@@ -467,9 +454,8 @@ const CustomerInfo = () => {
       title: '下次家访日期',
       key: 'nextVisitDate',
       width: 140,
-      sortOrder: sortedInfo.columnKey === 'nextVisitDate' && sortedInfo.order,
       render: (_, record) => record.lastVisitDate
-        ? dayjs(record.lastVisitDate).add(120, 'day').format('MM/DD/YYYY')
+        ? dayjs(record.lastVisitDate).add(120, 'day').format('MM-DD-YYYY')
         : '-',
       sorter: (a, b) => {
         if (!a.lastVisitDate && !b.lastVisitDate) return 0;
@@ -491,7 +477,7 @@ const CustomerInfo = () => {
          (b.lastCarePlanDate ? dayjs(b.lastCarePlanDate).add(365, 'day').valueOf() : 0)),
       sortDirections: ['ascend', 'descend'],
       render: (_, record) => record.lastCarePlanDate
-        ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM/DD/YYYY')
+        ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM-DD-YYYY')
         : '-',
     },
     {
@@ -743,7 +729,6 @@ const CustomerInfo = () => {
                   if (data.code === 0) {
                     setCustomerData(data.data);
                     setCustomerCount(data.data.length);
-                    setEditedRowKey(currentCustomer.id);
                   }
                 });
             } else {
@@ -860,8 +845,8 @@ const CustomerInfo = () => {
       const pcaPhone = getPhone(record.pca);
       const pca2Phone = getPhone(record.pca_2);
       const pca3Phone = getPhone(record.pca_3);
-      const nextVisitDate = record.lastVisitDate ? dayjs(record.lastVisitDate).add(120, 'day').format('MM/DD/YYYY') : '';
-      const nextCarePlanDate = record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM/DD/YYYY') : '';
+      const nextVisitDate = record.lastVisitDate ? dayjs(record.lastVisitDate).add(120, 'day').format('MM-DD-YYYY') : '';
+      const nextCarePlanDate = record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM-DD-YYYY') : '';
       const canvas = await html2canvas(previewRef.current, { scale: 2 });
       const imgData = canvas.toDataURL('image/png');
       const doc = new jsPDF('p', 'pt', 'a4');
@@ -919,8 +904,8 @@ const CustomerInfo = () => {
     const pcaPhone = getPhone(record.pca);
     const pca2Phone = getPhone(record.pca_2);
     const pca3Phone = getPhone(record.pca_3);
-    const nextVisitDate = record.lastVisitDate ? dayjs(record.lastVisitDate).add(120, 'day').format('MM/DD/YYYY') : '';
-    const nextCarePlanDate = record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM/DD/YYYY') : '';
+    const nextVisitDate = record.lastVisitDate ? dayjs(record.lastVisitDate).add(120, 'day').format('MM-DD-YYYY') : '';
+    const nextCarePlanDate = record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).add(365, 'day').format('MM-DD-YYYY') : '';
     const rows = [
       ['Client Name', record.name],
       ['Client MA#', record.id],
@@ -991,8 +976,8 @@ const CustomerInfo = () => {
     const spouseRec = spouseId ? customerData.find(item => item.id === spouseId) || {} : {};
     const spouseLabel = spouseRec.id || '';
     const spouseName = spouseRec.name || '';
-    const spouseReass = spouseRec.lastVisitDate ? dayjs(spouseRec.lastVisitDate).add(120, 'day').format('YYYY-MM-DD') : '无';
-    const spouseReCarePlan = spouseRec.lastCarePlanDate ? dayjs(spouseRec.lastCarePlanDate).add(365, 'day').format('YYYY-MM-DD') : '无';
+    const spouseReass = spouseRec.lastVisitDate ? dayjs(spouseRec.lastVisitDate).add(120, 'day').format('MM-DD-YYYY') : '无';
+    const spouseReCarePlan = spouseRec.lastCarePlanDate ? dayjs(spouseRec.lastCarePlanDate).add(365, 'day').format('MM-DD-YYYY') : '无';
     return (
       <CustomerDetailCard>
         <Row gutter={[24, 16]}>
@@ -1002,7 +987,7 @@ const CustomerInfo = () => {
             <DetailItem><UserOutlined className="icon" /><span className="label">ID:</span><span className="value">{record.id}</span></DetailItem>
             <DetailItem><UserOutlined className="icon" /><span className="label">性别:</span><span className="value">{record.gender}</span></DetailItem>
             <DetailItem><UserOutlined className="icon" /><span className="label">年龄:</span><span className="value">{record.age}</span></DetailItem>
-            <DetailItem><CalendarOutlined className="icon" /><span className="label">生日:</span><span className="value">{record.birthday ? dayjs(record.birthday).format('YYYY-MM-DD') : '无'}</span></DetailItem>
+            <DetailItem><CalendarOutlined className="icon" /><span className="label">生日:</span><span className="value">{record.birthday ? dayjs(record.birthday).format('MM-DD-YYYY') : '无'}</span></DetailItem>
             <DetailItem><UserOutlined className="icon" /><span className="label">语言:</span><span className="value">{Array.isArray(record.language) ? record.language.join(', ') : record.language || '无'}</span></DetailItem>
           </Col>
           <Col span={8}>
@@ -1012,10 +997,10 @@ const CustomerInfo = () => {
               <span className="label">Shared Att Hours:</span>
               <span className="value">{record.sharedAttemptHours || '无'}</span>
             </DetailItem>
-            <DetailItem><span className="label">加入时间:</span><span className="value">{record.joinDate}</span></DetailItem>
+            <DetailItem><span className="label">加入时间:</span><span className="value">{record.joinDate ? dayjs(record.joinDate).format('MM-DD-YYYY') : '无'}</span></DetailItem>
             <DetailItem><span className="label">第几次加入:</span><span className="value">{record.joinCount}</span></DetailItem>
-            <DetailItem><span className="label">最新家访日期:</span><span className="value">{record.lastVisitDate || '无'}</span></DetailItem>
-            <DetailItem><span className="label">最新CarePlan日期:</span><span className="value">{record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).format('YYYY-MM-DD') : '无'}</span></DetailItem>
+            <DetailItem><span className="label">最新家访日期:</span><span className="value">{record.lastVisitDate ? dayjs(record.lastVisitDate).format('MM-DD-YYYY') : '无'}</span></DetailItem>
+            <DetailItem><span className="label">最新CarePlan日期:</span><span className="value">{record.lastCarePlanDate ? dayjs(record.lastCarePlanDate).format('MM-DD-YYYY') : '无'}</span></DetailItem>
           </Col>
           <Col span={8}>
             <Title level={5}>联系信息</Title>
@@ -1137,14 +1122,21 @@ const CustomerInfo = () => {
       <TableCard>
         <Table
           columns={columns}
-          dataSource={filteredCustomers}
-          onChange={(pagination, filters, sorter) => setSortedInfo(sorter)}
+          dataSource={sortedCustomers}
           rowKey="id"
-          rowClassName={(record) => record.id === editedRowKey ? 'edited-row' : ''}
+          rowClassName={(record) => record.id === currentCustomer?.id ? 'edited-row' : ''}
           expandable={{
             expandedRowRender,
             expandedRowKeys: expandedRowKeys,
-            onExpand: handleExpand,
+            onExpand: (expanded, record) => {
+              if (expanded) {
+                // 展开当前行，自动收起其他行
+                setExpandedRowKeys([record.id]);
+              } else {
+                // 收起当前行
+                setExpandedRowKeys([]);
+              }
+            },
             rowExpandable: () => true,
             expandIcon: ({ expanded, onExpand, record }) => (
               <ModernExpandButton

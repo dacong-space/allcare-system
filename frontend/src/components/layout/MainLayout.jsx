@@ -407,7 +407,7 @@ const MainLayout = () => {
               justifyContent: 'center',
               zIndex: 1002
             }}>
-              <div style={{ lineHeight: '1.5' }}>Copyright © 2025 Allcare Health Care, LLC</div>
+              <div style={{ lineHeight: '1.5' }}>Copyright 2025 Allcare Health Care, LLC</div>
               <div style={{ color: '#666666', marginTop: '4px', lineHeight: '1.5' }}>
                 Designed and developed by
               </div>
@@ -433,7 +433,8 @@ const MainLayout = () => {
                 height: '40px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'flex-start',
+                paddingLeft: '8px',
                 color: 'var(--text-primary)',
                 borderRadius: '4px',
                 transition: 'all 0.3s ease'

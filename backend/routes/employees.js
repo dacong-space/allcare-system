@@ -7,6 +7,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const employees = await Employee.findAll();
+    console.log('GET /api/employees raw:', employees.map(e => e.toJSON()));
     const result = employees.map(e => {
       const obj = e.toJSON();
       return {

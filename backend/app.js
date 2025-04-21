@@ -59,7 +59,8 @@ if (require.main === module) {
     } catch (err) {
       console.warn('Skipping language cast:', err.message);
     }
-    await sequelize.sync({ alter: true });
+    // 已由 migration 管理，不自动 sync alter
+    await sequelize.authenticate();
     app.listen(PORT);
   })();
 }

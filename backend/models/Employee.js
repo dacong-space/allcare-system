@@ -28,7 +28,7 @@ const Employee = sequelize.define('Employee', {
     type: DataTypes.STRING,
     allowNull: true,
     validate: {
-      is: /^[0-9+\- ]*$/  // 只允许数字、空格、+、-
+      is: /^[0-9()\+\-\s]*$/  // 允许数字、空格、+、-、()
     }
   },
   email: {
@@ -41,6 +41,9 @@ const Employee = sequelize.define('Employee', {
   },
   joinDate: DataTypes.DATE,
   cprExpire: DataTypes.DATE,
+  latestTrainingDate: DataTypes.DATE,
+  documentExpire: DataTypes.DATE,
+  latestExamDate: DataTypes.DATE,
   address: DataTypes.STRING,
   emergencyContact: DataTypes.JSONB,
   note: DataTypes.TEXT

@@ -255,6 +255,7 @@ const EmployeeInfo = () => {
         headers: { 'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '' }
       });
       const result = await res.json();
+      console.log('fetchEmployees 执行结果:', result.data);
       if (result.code === 0) {
         setEmployees(result.data);
       } else {
@@ -297,27 +298,13 @@ const EmployeeInfo = () => {
       width: 80,
     },
     {
-      title: '语言',
-      dataIndex: 'language',
-      key: 'language',
-      width: 100,
-      render: (languages) => {
-        if (Array.isArray(languages) && languages.length > 0) {
-          if (languages.length === 1) {
-            return languages[0];
-          } else {
-            // 如果有多种语言，显示第一种，并在悬停时显示所有语言
-            return (
-              <Tooltip title={languages.join(', ')}>
-                <span style={{ cursor: 'pointer' }}>
-                  {languages[0]} <small style={{ color: '#999', fontSize: '12px', verticalAlign: 'middle' }}>..</small>
-                </span>
-              </Tooltip>
-            );
-          }
-        }
-        return '-';
-      },
+      title: '年龄',
+      dataIndex: 'age',
+      key: 'age',
+      width: 80,
+      sorter: (a, b) => (a.age || 0) - (b.age || 0),
+      sortDirections: ['ascend','descend'],
+      render: (age) => age != null ? age : '-',
     },
     {
       title: '职位',
@@ -325,23 +312,32 @@ const EmployeeInfo = () => {
       key: 'position',
       width: 140,
     },
-
     {
-      title: '联系方式',
-      key: 'contact',
-      width: 100,
-      render: (_, record) => (
-        <Space size="middle">
-          <Tooltip title={record.email}>
-            <MailOutlined style={{ color: 'var(--primary-color)' }} />
-          </Tooltip>
-          <Tooltip title={record.phone}>
-            <PhoneOutlined style={{ color: 'var(--primary-color)' }} />
-          </Tooltip>
-        </Space>
-      ),
+      title: 'CPR过期日期',
+      dataIndex: 'cprExpire',
+      key: 'cprExpire',
+      width: 140,
+      render: (text) => text ? dayjs(text).format('MM-DD-YYYY') : '-',
+      sorter: (a, b) => {
+        const aVal = a.cprExpire ? dayjs(a.cprExpire).valueOf() : 0;
+        const bVal = b.cprExpire ? dayjs(b.cprExpire).valueOf() : 0;
+        return aVal - bVal;
+      },
+      sortDirections: ['ascend', 'descend'],
     },
-
+    {
+      title: '最新培训日期',
+      dataIndex: 'latestTrainingDate',
+      key: 'latestTrainingDate',
+      width: 140,
+      render: (text) => text ? dayjs(text).format('MM-DD-YYYY') : '-',
+      sorter: (a, b) => {
+        const aVal = a.latestTrainingDate ? dayjs(a.latestTrainingDate).valueOf() : 0;
+        const bVal = b.latestTrainingDate ? dayjs(b.latestTrainingDate).valueOf() : 0;
+        return aVal - bVal;
+      },
+      sortDirections: ['ascend', 'descend'],
+    },
     {
       title: '状态',
       key: 'status',
@@ -481,6 +477,9 @@ const EmployeeInfo = () => {
     const birthdayValue = record.birthday ? dayjs(record.birthday) : null;
     const joinDateValue = record.joinDate ? dayjs(record.joinDate) : null;
     const cprExpireValue = record.cprExpire ? dayjs(record.cprExpire) : null;
+    const latestTrainingDateValue = record.latestTrainingDate ? dayjs(record.latestTrainingDate) : null;
+    const documentExpireValue = record.documentExpire ? dayjs(record.documentExpire) : null;
+    const latestExamDateValue = record.latestExamDate ? dayjs(record.latestExamDate) : null;
 
     form.setFieldsValue({
       id: record.id,
@@ -495,6 +494,9 @@ const EmployeeInfo = () => {
       email: record.email,
       joinDate: joinDateValue,
       cprExpire: cprExpireValue,
+      latestTrainingDate: latestTrainingDateValue,
+      documentExpire: documentExpireValue,
+      latestExamDate: latestExamDateValue,
       address: record.address,
       emergencyContact: {
         name: record.emergencyContact?.name || '',
@@ -526,6 +528,15 @@ const EmployeeInfo = () => {
       if (values.birthday) {
         values.birthday = values.birthday.format('YYYY-MM-DD');
       }
+      if (values.latestTrainingDate) {
+        values.latestTrainingDate = values.latestTrainingDate.format('YYYY-MM-DD');
+      }
+      if (values.documentExpire) {
+        values.documentExpire = values.documentExpire.format('YYYY-MM-DD');
+      }
+      if (values.latestExamDate) {
+        values.latestExamDate = values.latestExamDate.format('YYYY-MM-DD');
+      }
       if (currentEmployee) {
         // 调用后端接口
         const res = await fetch(`/api/employees/${currentEmployee.id}`, {
@@ -537,6 +548,7 @@ const EmployeeInfo = () => {
           body: JSON.stringify(values)
         });
         const result = await res.json();
+        console.log('PUT /api/employees 返回:', result);
         if (result.code === 0) {
           message.success({
             content: `已更新员工 ${values.name} 的信息`,
@@ -672,6 +684,41 @@ const EmployeeInfo = () => {
     }
   };
 
+  // 导出所有员工 JSON 数据（与客户页面一致）
+  const exportAllJSON = () => {
+    const json = JSON.stringify(employees, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'employees.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 导出所有员工 Excel (CSV 格式，与客户页面一致)
+  const exportAllExcel = () => {
+    if (!employees || employees.length === 0) return;
+    const header = Object.keys(employees[0]);
+    const csvRows = [header.join(',')];
+    for (const row of employees) {
+      const values = header.map(field => `"${(row[field] ?? '').toString().replace(/"/g, '""')}"`);
+      csvRows.push(values.join(','));
+    }
+    const csvString = '\uFEFF' + csvRows.join('\r\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'employees.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // 处理删除
   const handleDelete = async () => {
     // 从数据中删除员工
@@ -730,21 +777,21 @@ const EmployeeInfo = () => {
                   key: 'json',
                   label: '导出JSON',
                   icon: <FileOutlined />,
-                  onClick: () => handleExport('json')
+                  onClick: exportAllJSON
                 },
                 {
                   key: 'excel',
                   label: '导出Excel',
                   icon: <FileExcelOutlined />,
-                  onClick: () => handleExport('excel')
+                  onClick: exportAllExcel
                 },
                 {
                   key: 'console',
                   label: '在控制台查看',
                   icon: <CodeOutlined />,
                   onClick: () => {
-                    console.log('\n\n员工数据结构示例：', employees[0]);
-                    message.success('员工数据结构已打印到控制台，请按F12查看');
+                    console.log('\n\n所有员工数据：', employees);
+                    message.success('所有员工数据已打印到控制台，请按F12查看');
                   }
                 }
               ]
@@ -798,18 +845,30 @@ const EmployeeInfo = () => {
                       </DetailItem>
                       <DetailItem>
                         <span className="label">生日:</span>
-                        <span className="value">{record.birthday ? dayjs(record.birthday).format('MM/DD/YYYY') : '-'}</span>
+                        <span className="value">{record.birthday ? dayjs(record.birthday).format('MM-DD-YYYY') : '-'}</span>
                       </DetailItem>
                     </Col>
                     <Col span={8}>
                       <Title level={5}>时间信息</Title>
                       <DetailItem>
                         <span className="label">入职时间:</span>
-                        <span className="value">{record.joinDate ? dayjs(record.joinDate).format('MM/DD/YYYY') : '-'}</span>
+                        <span className="value">{record.joinDate ? dayjs(record.joinDate).format('MM-DD-YYYY') : '-'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">CPR过期日期:</span>
-                        <span className="value">{record.cprExpire ? dayjs(record.cprExpire).format('MM/DD/YYYY') : '-'}</span>
+                        <span className="value">{record.cprExpire ? dayjs(record.cprExpire).format('MM-DD-YYYY') : '-'}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">最新培训日期:</span>
+                        <span className="value">{record.latestTrainingDate ? dayjs(record.latestTrainingDate).format('MM-DD-YYYY') : '-'}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">证件有效期:</span>
+                        <span className="value">{record.documentExpire ? dayjs(record.documentExpire).format('MM-DD-YYYY') : '-'}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">最新体检日期:</span>
+                        <span className="value">{record.latestExamDate ? dayjs(record.latestExamDate).format('MM-DD-YYYY') : '-'}</span>
                       </DetailItem>
                     </Col>
                     <Col span={8}>
@@ -828,10 +887,7 @@ const EmployeeInfo = () => {
                       </DetailItem>
                     </Col>
 
-                    {/* 分割线 */}
-                    <Col span={24}><div style={{ borderBottom: '1px solid #eee', margin: '16px 0' }} /></Col>
-
-                    {/* 紧急联系人、其他信息 两列分组 */}
+                    {/* 紧急联系人信息 */}
                     <Col span={8}>
                       <Title level={5}>紧急联系人</Title>
                       <DetailItem>
@@ -863,43 +919,11 @@ const EmployeeInfo = () => {
                       </DetailItem>
                     </Col>
 
-                    {/* 备注分组 */}
+                    {/* 备注信息 */}
                     <Col span={24}>
-                      <div style={{ marginTop: '16px' }}>
-                        <Title level={5} style={{ margin: 0, marginBottom: '8px' }}>备注</Title>
-                        <div
-                          className="notes-display"
-                          style={{
-                            height: '100px',
-                            padding: '12px',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '4px',
-                            background: 'var(--bg-secondary)',
-                            textAlign: 'left',
-                            overflowY: 'scroll',
-                            scrollbarGutter: 'stable',
-                            resize: 'vertical',
-                            maxHeight: '300px',
-                            position: 'relative',
-                            paddingRight: '15px'
-                          }}
-                        >
-                          {record.note ? (
-                            <div
-                              style={{
-                                whiteSpace: 'pre-wrap',
-                                textAlign: 'left',
-                                width: '100%',
-                                paddingRight: '10px',
-                                minHeight: '80px'
-                              }}
-                            >
-                              {record.note}
-                            </div>
-                          ) : (
-                            <p style={{ textAlign: 'left' }}>暂无备注</p>
-                          )}
-                        </div>
+                      <Title level={5}>备注</Title>
+                      <div style={{ whiteSpace: 'pre-wrap', marginBottom: '12px', textAlign: 'left' }}>
+                        {record.note || '-'}
                       </div>
                     </Col>
                   </Row>
@@ -959,7 +983,7 @@ const EmployeeInfo = () => {
               </Select>  
             </Form.Item>
             <Form.Item name="birthday" label="生日">
-              <DatePicker style={{ width: '100%' }} format="MM/DD/YYYY" placeholder="MM/DD/YYYY" />
+              <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />
             </Form.Item>
             <Form.Item name="language" label="语言">  
               <Select mode="multiple" placeholder="请选择语言" style={{ width: '100%' }}>  
@@ -1013,10 +1037,19 @@ const EmployeeInfo = () => {
               <Input placeholder="请输入邮箱" />
             </Form.Item>
             <Form.Item name="joinDate" label="入职时间">
-              <DatePicker style={{ width: '100%' }} format="MM/DD/YYYY" placeholder="MM/DD/YYYY" />
+              <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />
             </Form.Item>
             <Form.Item name="cprExpire" label="CPR过期日期">
-              <DatePicker style={{ width: '100%' }} format="MM/DD/YYYY" placeholder="MM/DD/YYYY" />
+              <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />
+            </Form.Item>
+            <Form.Item name="latestTrainingDate" label="最新培训日期">
+              <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />
+            </Form.Item>
+            <Form.Item name="documentExpire" label="证件有效期">
+              <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />
+            </Form.Item>
+            <Form.Item name="latestExamDate" label="最新体检日期">
+              <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />
             </Form.Item>
           </div>
           <Form.Item name="address" label="地址" style={{ gridColumn: '1/3' }}>
