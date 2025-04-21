@@ -9,7 +9,10 @@ const Employee = sequelize.define('Employee', {
   },
   name: DataTypes.STRING,
   age: DataTypes.INTEGER,
-  gender: DataTypes.STRING,
+  gender: {
+    type: DataTypes.ENUM('男','女'),
+    allowNull: true
+  },
   birthday: DataTypes.DATE,
   language: {
     type: DataTypes.ARRAY(DataTypes.STRING),
@@ -17,17 +20,36 @@ const Employee = sequelize.define('Employee', {
   },
   position: DataTypes.STRING,
   status: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('active','inactive','onleave'),
     allowNull: false,
     defaultValue: 'active'
   },
-  phone: DataTypes.STRING,
-  email: DataTypes.STRING,
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      is: /^[0-9+\- ]*$/  // 只允许数字、空格、+、-
+    }
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: true
+    }
+  },
   joinDate: DataTypes.DATE,
   cprExpire: DataTypes.DATE,
   address: DataTypes.STRING,
-  emergencyContact: DataTypes.JSON,
+  emergencyContact: DataTypes.JSONB,
   note: DataTypes.TEXT
+}, {
+  indexes: [
+    { unique: true, fields: ['email'] },
+    { fields: ['status'] },
+    { fields: ['joinDate'] }
+  ]
 });
 
 module.exports = Employee;

@@ -258,6 +258,7 @@ const CustomerInfo = () => {
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewRecord, setPreviewRecord] = useState(null);
   const previewRef = useRef(null);
+  const [sortedInfo, setSortedInfo] = useState({ columnKey: 'nextVisitDate', order: 'ascend' });
 
   useEffect(() => {
     let timer;
@@ -466,6 +467,7 @@ const CustomerInfo = () => {
       title: '下次家访日期',
       key: 'nextVisitDate',
       width: 140,
+      sortOrder: sortedInfo.columnKey === 'nextVisitDate' && sortedInfo.order,
       render: (_, record) => record.lastVisitDate
         ? dayjs(record.lastVisitDate).add(120, 'day').format('MM/DD/YYYY')
         : '-',
@@ -1136,6 +1138,7 @@ const CustomerInfo = () => {
         <Table
           columns={columns}
           dataSource={filteredCustomers}
+          onChange={(pagination, filters, sorter) => setSortedInfo(sorter)}
           rowKey="id"
           rowClassName={(record) => record.id === editedRowKey ? 'edited-row' : ''}
           expandable={{
@@ -1178,7 +1181,7 @@ const CustomerInfo = () => {
               <Input placeholder="请输入姓名" />
             </Form.Item>
             <Form.Item name="id" label="ID (MA#)" rules={[{ required: true, message: '请输入ID' }]}>
-              <Input placeholder="请输入ID" disabled={!!currentCustomer} />
+              <Input placeholder="请输入ID" />
             </Form.Item>
             <Form.Item name="gender" label="性别">
               <Select><Select.Option value="男">男</Select.Option><Select.Option value="女">女</Select.Option></Select>

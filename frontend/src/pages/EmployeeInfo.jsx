@@ -947,7 +947,7 @@ const EmployeeInfo = () => {
               <Input placeholder="请输入姓名" />  
             </Form.Item>
             <Form.Item name="id" label="ID">  
-              <Input placeholder="请输入ID" disabled={!!currentEmployee} />  
+              <Input placeholder="请输入ID" />  
             </Form.Item>
             <Form.Item name="age" label="年龄">  
               <Input type="number" placeholder="请输入年龄" />  
@@ -1006,8 +1006,11 @@ const EmployeeInfo = () => {
                 }}  
               />  
             </Form.Item>
-            <Form.Item name="email" label="Email">  
-              <Input placeholder="请输入邮箱" />  
+            <Form.Item name="email" label="Email" rules={[
+              { type: 'email', message: '请输入有效的邮箱' },
+              { required: true, message: '请输入邮箱' }
+            ]}>
+              <Input placeholder="请输入邮箱" />
             </Form.Item>
             <Form.Item name="joinDate" label="入职时间">
               <DatePicker style={{ width: '100%' }} format="MM/DD/YYYY" placeholder="MM/DD/YYYY" />
