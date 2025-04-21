@@ -39,7 +39,10 @@ import {
   CalendarOutlined,
   EnvironmentOutlined
 } from '@ant-design/icons';
-import { MinimalistManIcon, MinimalistWomanIcon } from '../components/CustomIcons';
+import {
+  MinimalistManIcon,
+  MinimalistWomanIcon
+} from '../components/CustomIcons';
 // import ScrollIndicator from '../components/ScrollIndicator';
 import styled from 'styled-components';
 
@@ -475,21 +478,30 @@ const EmployeeInfo = () => {
     setCurrentEmployee(record);
 
     // 处理日期格式
+    const birthdayValue = record.birthday ? dayjs(record.birthday) : null;
     const joinDateValue = record.joinDate ? dayjs(record.joinDate) : null;
+    const cprExpireValue = record.cprExpire ? dayjs(record.cprExpire) : null;
 
     form.setFieldsValue({
       id: record.id,
       name: record.name,
       age: record.age,
       gender: record.gender,
+      birthday: birthdayValue,
       language: record.language,
-      phone: record.phone,
-      email: record.email,
-      address: record.address,
-      joinDate: joinDateValue,
       position: record.position,
       status: record.status,
-      notes: record.notes || ''
+      phone: record.phone,
+      email: record.email,
+      joinDate: joinDateValue,
+      cprExpire: cprExpireValue,
+      address: record.address,
+      emergencyContact: {
+        name: record.emergencyContact?.name || '',
+        relation: record.emergencyContact?.relation || '',
+        phone: record.emergencyContact?.phone || ''
+      },
+      note: record.note || ''
     });
     setIsModalVisible(true);
   };
@@ -507,6 +519,12 @@ const EmployeeInfo = () => {
       // 处理日期格式
       if (values.joinDate) {
         values.joinDate = values.joinDate.format('YYYY-MM-DD');
+      }
+      if (values.cprExpire) {
+        values.cprExpire = values.cprExpire.format('YYYY-MM-DD');
+      }
+      if (values.birthday) {
+        values.birthday = values.birthday.format('YYYY-MM-DD');
       }
       if (currentEmployee) {
         // 调用后端接口
@@ -759,132 +777,129 @@ const EmployeeInfo = () => {
               return (
                 <EmployeeDetailCard>
                   <Row gutter={[24, 16]}>
-                    {/* 第一行 */}
+                    {/* 基础信息、时间信息、联系信息 三列分组 */}
                     <Col span={8}>
-                      <Title level={5}>基本信息</Title>
+                      <Title level={5}>基础信息</Title>
                       <DetailItem>
-                        <UserOutlined className="icon" />
-                        <span className="label">ID:</span>
-                        <span className="value">{record.id}</span>
-                      </DetailItem>
-                      <DetailItem>
-                        <UserOutlined className="icon" />
                         <span className="label">姓名:</span>
                         <span className="value">{record.name}</span>
                       </DetailItem>
                       <DetailItem>
-                        <UserOutlined className="icon" />
+                        <span className="label">ID:</span>
+                        <span className="value">{record.id}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">年龄:</span>
+                        <span className="value">{record.age}</span>
+                      </DetailItem>
+                      <DetailItem>
                         <span className="label">性别:</span>
                         <span className="value">{record.gender}</span>
                       </DetailItem>
                       <DetailItem>
-                        <UserOutlined className="icon" />
-                        <span className="label">年龄:</span>
-                        <span className="value">{record.age}</span>
+                        <span className="label">生日:</span>
+                        <span className="value">{record.birthday ? dayjs(record.birthday).format('MM/DD/YYYY') : '-'}</span>
                       </DetailItem>
                     </Col>
-
+                    <Col span={8}>
+                      <Title level={5}>时间信息</Title>
+                      <DetailItem>
+                        <span className="label">入职时间:</span>
+                        <span className="value">{record.joinDate ? dayjs(record.joinDate).format('MM/DD/YYYY') : '-'}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">CPR过期日期:</span>
+                        <span className="value">{record.cprExpire ? dayjs(record.cprExpire).format('MM/DD/YYYY') : '-'}</span>
+                      </DetailItem>
+                    </Col>
                     <Col span={8}>
                       <Title level={5}>联系信息</Title>
                       <DetailItem>
-                        <PhoneOutlined className="icon" />
-                        <span className="label">电话:</span>
+                        <span className="label">手机:</span>
                         <span className="value">{record.phone}</span>
                       </DetailItem>
                       <DetailItem>
-                        <MailOutlined className="icon" />
                         <span className="label">邮箱:</span>
                         <span className="value">{record.email}</span>
                       </DetailItem>
                       <DetailItem>
-                        <UserOutlined className="icon" />
-                        <span className="label">语言:</span>
-                        <span className="value">
-                          {Array.isArray(record.language)
-                            ? record.language.join(', ')
-                            : record.language || '-'}
-                        </span>
-                      </DetailItem>
-                    </Col>
-
-                    <Col span={8}>
-                      <Title level={5}>工作信息</Title>
-                      <DetailItem>
-                        <CalendarOutlined className="icon" />
-                        <span className="label">入职日期:</span>
-                        <span className="value">{record.joinDate}</span>
-                      </DetailItem>
-                      <DetailItem>
-                        <UserOutlined className="icon" />
-                        <span className="label">职位:</span>
-                        <span className="value">{record.position}</span>
-                      </DetailItem>
-                      <DetailItem>
-                        <UserOutlined className="icon" />
-                        <span className="label">状态:</span>
-                        <span className="value">{getStatusTag(record.status)}</span>
-                      </DetailItem>
-                    </Col>
-
-                    {/* 第二行 */}
-                    <Col span={24}>
-                      <Title level={5}>地址信息</Title>
-                      <DetailItem>
-                        <EnvironmentOutlined className="icon" />
                         <span className="label">地址:</span>
                         <span className="value">{record.address || '-'}</span>
                       </DetailItem>
                     </Col>
 
-                    {/* 备注区域 */}
-                    <Col span={24} style={{ marginTop: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Title level={5} style={{ margin: 0, marginBottom: '8px' }}>备注</Title>
-                        {record.notes && (
-                          <span style={{
-                            fontSize: '0.7rem',
-                            color: 'rgba(0, 0, 0, 0.45)',
-                            marginLeft: '8px',
-                            marginBottom: '8px'
-                          }}>
-                            ({record.notes.split('\n').length}行备注)
-                          </span>
-                        )}
-                      </div>
-                      <div
-                        ref={el => notesContainerRefs.current[record.id] = el}
-                        className="notes-display"
-                        style={{
-                          height: '100px',
-                          padding: '12px',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '4px',
-                          background: 'var(--bg-secondary)',
-                          textAlign: 'left',
-                          overflowY: 'scroll', // 强制始终显示竖向滚动条
-                          scrollbarGutter: 'stable', // 保留滚动条空间，防止内容跳动
-                          resize: 'vertical',
-                          maxHeight: '300px',
-                          position: 'relative', // 添加相对定位以确保滚动条正确显示
-                          paddingRight: '15px' // 为滚动条留出空间
-                        }}
-                      >
-                        {record.notes ? (
-                          <div
-                            style={{
-                              whiteSpace: 'pre-wrap',
-                              textAlign: 'left',
-                              width: '100%',
-                              paddingRight: '10px', // 留出空间给滚动条
-                              minHeight: '80px' // 确保内容高度足够，使滚动条始终显示
-                            }}
-                          >
-                            {record.notes}
-                          </div>
-                        ) : (
-                          <p style={{ textAlign: 'left' }}>暂无备注</p>
-                        )}
+                    {/* 分割线 */}
+                    <Col span={24}><div style={{ borderBottom: '1px solid #eee', margin: '16px 0' }} /></Col>
 
+                    {/* 紧急联系人、其他信息 两列分组 */}
+                    <Col span={8}>
+                      <Title level={5}>紧急联系人</Title>
+                      <DetailItem>
+                        <span className="label">姓名:</span>
+                        <span className="value">{record.emergencyContact?.name || '-'}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">关系:</span>
+                        <span className="value">{record.emergencyContact?.relation || '-'}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">电话:</span>
+                        <span className="value">{record.emergencyContact?.phone || '-'}</span>
+                      </DetailItem>
+                    </Col>
+                    <Col span={8}>
+                      <Title level={5}>其他信息</Title>
+                      <DetailItem>
+                        <span className="label">语言:</span>
+                        <span className="value">{Array.isArray(record.language) ? record.language.join(', ') : record.language || '-'}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">职位:</span>
+                        <span className="value">{record.position}</span>
+                      </DetailItem>
+                      <DetailItem>
+                        <span className="label">状态:</span>
+                        <span className="value">{getStatusTag(record.status)}</span>
+                      </DetailItem>
+                    </Col>
+
+                    {/* 备注分组 */}
+                    <Col span={24}>
+                      <div style={{ marginTop: '16px' }}>
+                        <Title level={5} style={{ margin: 0, marginBottom: '8px' }}>备注</Title>
+                        <div
+                          className="notes-display"
+                          style={{
+                            height: '100px',
+                            padding: '12px',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '4px',
+                            background: 'var(--bg-secondary)',
+                            textAlign: 'left',
+                            overflowY: 'scroll',
+                            scrollbarGutter: 'stable',
+                            resize: 'vertical',
+                            maxHeight: '300px',
+                            position: 'relative',
+                            paddingRight: '15px'
+                          }}
+                        >
+                          {record.note ? (
+                            <div
+                              style={{
+                                whiteSpace: 'pre-wrap',
+                                textAlign: 'left',
+                                width: '100%',
+                                paddingRight: '10px',
+                                minHeight: '80px'
+                              }}
+                            >
+                              {record.note}
+                            </div>
+                          ) : (
+                            <p style={{ textAlign: 'left' }}>暂无备注</p>
+                          )}
+                        </div>
                       </div>
                     </Col>
                   </Row>
@@ -924,168 +939,135 @@ const EmployeeInfo = () => {
           layout="vertical"
           initialValues={{
             gender: '男',
-            status: 'active',
+            status: 'active'
           }}
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <Form.Item
-              name="id"
-              label="ID (职位代码+ID)"
-              rules={[{ required: true, message: '请输入ID' }]}
-            >
-              <Input placeholder="请输入ID" disabled={!!currentEmployee} />
+            <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>  
+              <Input placeholder="请输入姓名" />  
             </Form.Item>
-
-            <Form.Item
-              name="name"
-              label="姓名"
-              rules={[{ required: true, message: '请输入姓名' }]}
-            >
-              <Input placeholder="请输入姓名" />
+            <Form.Item name="id" label="ID">  
+              <Input placeholder="请输入ID" disabled={!!currentEmployee} />  
             </Form.Item>
-
-            <Form.Item
-              name="age"
-              label="年龄"
-              rules={[{ required: true, message: '请输入年龄' }]}
-            >
-              <Input type="number" min={18} max={80} placeholder="请输入年龄" />
+            <Form.Item name="age" label="年龄">  
+              <Input type="number" placeholder="请输入年龄" />  
             </Form.Item>
-
-            <Form.Item
-              name="gender"
-              label="性别"
-              rules={[{ required: true, message: '请选择性别' }]}
-            >
-              <Select placeholder="请选择性别">
-                <Select.Option value="男">男</Select.Option>
-                <Select.Option value="女">女</Select.Option>
-              </Select>
+            <Form.Item name="gender" label="性别">  
+              <Select placeholder="请选择性别">  
+                <Select.Option value="男">男</Select.Option>  
+                <Select.Option value="女">女</Select.Option>  
+              </Select>  
             </Form.Item>
-
-            <Form.Item
-              name="language"
-              label="语言"
-              rules={[{ required: true, message: '请选择语言' }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="请选择语言"
-                style={{ width: '100%' }}
-              >
-                <Select.Option value="中文">中文</Select.Option>
-                <Select.Option value="粤语">粤语</Select.Option>
-                <Select.Option value="福州话">福州话</Select.Option>
-                <Select.Option value="英语">英语</Select.Option>
-                <Select.Option value="西班牙语">西班牙语</Select.Option>
-                <Select.Option value="法语">法语</Select.Option>
-              </Select>
+            <Form.Item name="birthday" label="生日">
+              <DatePicker style={{ width: '100%' }} format="MM/DD/YYYY" placeholder="MM/DD/YYYY" />
             </Form.Item>
-
+            <Form.Item name="language" label="语言">  
+              <Select mode="multiple" placeholder="请选择语言" style={{ width: '100%' }}>  
+                <Select.Option value="中文">中文</Select.Option>  
+                <Select.Option value="粤语">粤语</Select.Option>  
+                <Select.Option value="福州话">福州话</Select.Option>  
+                <Select.Option value="英语">英语</Select.Option>  
+                <Select.Option value="西班牙语">西班牙语</Select.Option>  
+                <Select.Option value="法语">法语</Select.Option>  
+              </Select>  
+            </Form.Item>
+            <Form.Item name="position" label="职位">  
+              <Input placeholder="请输入职位" />  
+            </Form.Item>
+            <Form.Item name="status" label="状态">  
+              <Select placeholder="请选择状态">  
+                <Select.Option value="active">在职</Select.Option>  
+                <Select.Option value="inactive">离职</Select.Option>  
+                <Select.Option value="onleave">休假</Select.Option>  
+              </Select>  
+            </Form.Item>
+            <Form.Item  
+              name="phone"  
+              label="手机"  
+              rules={[  
+                { required: true, message: '请输入手机号码' },  
+                { pattern: /^\(\d{3}\)\d{3}-\d{4}$/, message: '请按照(xxx)xxx-xxxx的格式输入' }  
+              ]}  
+            >  
+              <Input  
+                placeholder="(xxx)xxx-xxxx"  
+                maxLength={13}  
+                onChange={(e) => {  
+                  const value = e.target.value.replace(/\D/g, '');  
+                  const trimmed = value.slice(0, 10);  
+                  let formatted = '';  
+                  if (trimmed.length > 0) {  
+                    formatted = `(${trimmed.slice(0, 3)}`;  
+                    if (trimmed.length > 3) formatted += `)${trimmed.slice(3, 6)}`;  
+                    else formatted += ')';  
+                    if (trimmed.length > 6) formatted += `-${trimmed.slice(6)}`;  
+                  }  
+                  form.setFieldValue('phone', formatted);  
+                }}  
+              />  
+            </Form.Item>
+            <Form.Item name="email" label="Email">  
+              <Input placeholder="请输入邮箱" />  
+            </Form.Item>
+            <Form.Item name="joinDate" label="入职时间">
+              <DatePicker style={{ width: '100%' }} format="MM/DD/YYYY" placeholder="MM/DD/YYYY" />
+            </Form.Item>
+            <Form.Item name="cprExpire" label="CPR过期日期">
+              <DatePicker style={{ width: '100%' }} format="MM/DD/YYYY" placeholder="MM/DD/YYYY" />
+            </Form.Item>
+          </div>
+          <Form.Item name="address" label="地址" style={{ gridColumn: '1/3' }}>
+            <Input.TextArea rows={2} placeholder="请输入地址" />
+          </Form.Item>
+          {/* 紧急联系人信息 */}
+          <div style={{ gridColumn: '1/3', margin: '16px 0', borderBottom: '1px solid #f0f0f0' }} />
+          <h3 style={{ gridColumn: '1/3', marginBottom: '16px' }}>紧急联系人信息</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <Form.Item name={['emergencyContact', 'name']} label="紧急联系人姓名">  
+              <Input placeholder="请输入紧急联系人姓名" />  
+            </Form.Item>
+            <Form.Item name={['emergencyContact', 'relation']} label="关系">  
+              <Select placeholder="请选择关系">  
+                <Select.Option value="父亲">父亲</Select.Option>  
+                <Select.Option value="母亲">母亲</Select.Option>  
+                <Select.Option value="儿子">儿子</Select.Option>  
+                <Select.Option value="女儿">女儿</Select.Option>  
+                <Select.Option value="配偶">配偶</Select.Option>  
+                <Select.Option value="朋友">朋友</Select.Option>  
+              </Select>  
+            </Form.Item>
             <Form.Item
-              name="phone"
-              label="电话"
+              name={['emergencyContact', 'phone']}
+              label="紧急联系人电话"
               rules={[
-                { required: true, message: '请输入电话' },
-                {
-                  pattern: /^\(\d{3}\)-\d{3}-\d{4}$/,
-                  message: '请按照(xxx)-xxx-xxxx的格式输入'
-                }
+                { pattern: /^\(\d{3}\)\d{3}-\d{4}$/, message: '请按照(xxx)xxx-xxxx的格式输入' }
               ]}
+              style={{ gridColumn: '1/3' }}
             >
               <Input
-                placeholder="请输入电话号码"
-                maxLength={14}
+                placeholder="(xxx)xxx-xxxx"
+                maxLength={13}
                 onChange={(e) => {
-                  // 去除所有非数字字符
-                  const value = e.target.value.replace(/\D/g, '');
-
-                  // 限制最多10位数字
-                  const trimmedValue = value.slice(0, 10);
-
-                  // 根据输入长度格式化
-                  let formattedValue = '';
-                  if (trimmedValue.length > 0) {
-                    // 前3位
-                    formattedValue = `(${trimmedValue.slice(0, 3)}`;
-
-                    // 中间3位
-                    if (trimmedValue.length > 3) {
-                      formattedValue += `)-${trimmedValue.slice(3, 6)}`;
-                    } else {
-                      formattedValue += ')';
-                    }
-
-                    // 后4位
-                    if (trimmedValue.length > 6) {
-                      formattedValue += `-${trimmedValue.slice(6)}`;
-                    }
+                  const val = e.target.value.replace(/\D/g, '');
+                  const trimmed = val.slice(0, 10);
+                  let formatted = '';
+                  if (trimmed.length > 0) {
+                    formatted = `(${trimmed.slice(0, 3)}`;
+                    if (trimmed.length > 3) formatted += `)${trimmed.slice(3, 6)}`;
+                    else formatted += ')';
+                    if (trimmed.length > 6) formatted += `-${trimmed.slice(6)}`;
                   }
-
-                  // 更新表单字段值
-                  form.setFieldValue('phone', formattedValue);
+                  form.setFieldValue(['emergencyContact', 'phone'], formatted);
                 }}
               />
             </Form.Item>
-
-            <Form.Item
-              name="email"
-              label="邮箱"
-              rules={[
-                { type: 'email', message: '请输入有效的邮箱地址' }
-              ]}
-            >
-              <Input placeholder="请输入邮箱" />
-            </Form.Item>
-
-
-            <Form.Item
-              name="joinDate"
-              label="加入时间"
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="请选择加入时间" />
-            </Form.Item>
-
-
-
-
-            <Form.Item
-              name="position"
-              label="职位"
-              rules={[{ required: true, message: '请输入职位' }]}
-            >
-              <Input placeholder="请输入职位" />
-            </Form.Item>
-
-            <Form.Item
-              name="status"
-              label="状态"
-              rules={[{ required: true, message: '请选择状态' }]}
-            >
-              <Select>
-                <Select.Option value="active">在职</Select.Option>
-                <Select.Option value="inactive">离职</Select.Option>
-                <Select.Option value="onleave">休假</Select.Option>
-              </Select>
-            </Form.Item>
           </div>
-
-          <Form.Item
-            name="address"
-            label="地址"
-          >
-            <Input.TextArea rows={2} placeholder="请输入地址" />
+          {/* 备注信息 */}
+          <div style={{ gridColumn: '1/3', margin: '16px 0', borderBottom: '1px solid #f0f0f0' }} />
+          <h3 style={{ gridColumn: '1/3', marginBottom: '16px' }}>备注信息</h3>
+          <Form.Item name="note" label="备注信息" style={{ gridColumn: '1/3' }}>  
+            <Input.TextArea rows={4} placeholder="请输入备注信息" />  
           </Form.Item>
-
-          <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-            <h3 style={{ marginBottom: '16px' }}>备注信息</h3>
-            <Form.Item
-              name="notes"
-              label="备注"
-            >
-              <Input.TextArea rows={4} placeholder="请输入备注信息" />
-            </Form.Item>
-          </div>
         </Form>
       </Modal>
 

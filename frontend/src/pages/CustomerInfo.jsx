@@ -1017,7 +1017,7 @@ const CustomerInfo = () => {
           </Col>
           <Col span={8}>
             <Title level={5}>联系信息</Title>
-            <DetailItem><PhoneOutlined className="icon" /><span className="label">手机号:</span><span className="value">{record.phone}</span></DetailItem>
+            <DetailItem><PhoneOutlined className="icon" /><span className="label">手机:</span><span className="value">{record.phone}</span></DetailItem>
             <DetailItem><MailOutlined className="icon" /><span className="label">邮箱:</span><span className="value">{record.email}</span></DetailItem>
             <DetailItem><EnvironmentOutlined className="icon" /><span className="label">城市:</span><span className="value">{record.city}</span></DetailItem>
             <DetailItem><EnvironmentOutlined className="icon" /><span className="label">地址:</span><span className="value">{record.address}</span></DetailItem>

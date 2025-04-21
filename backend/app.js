@@ -38,10 +38,30 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/documents', documentRoutes);
 
+// 导入模型以支持员工表重建
+const Employee = require('./models/Employee');
+
 if (require.main === module) {
-  sequelize.sync({ alter: true }).then(() => {
+  (async () => {
+    try {
+      // 同步 Employee 表（保留已有数据）
+      await Employee.sync();
+      console.log('Employees table synced');
+    } catch (err) {
+      console.warn('Skipping Employees sync:', err.message);
+    }
+    try {
+      // 将已有的 language 字段转为 JSON 类型
+      await sequelize.query(`
+        ALTER TABLE "Employees" ALTER COLUMN "language" TYPE JSON USING language::json;
+      `);
+      console.log('Converted language column to JSON');
+    } catch (err) {
+      console.warn('Skipping language cast:', err.message);
+    }
+    await sequelize.sync({ alter: true });
     app.listen(PORT);
-  });
+  })();
 }
 
 // 导出 app 以便测试使用

@@ -7,10 +7,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const employees = await Employee.findAll();
-    const result = employees.map(e => ({
-      ...e.toJSON(),
-      language: e.language ? JSON.parse(e.language) : []
-    }));
+    const result = employees.map(e => {
+      const obj = e.toJSON();
+      return {
+        ...obj,
+        language: Array.isArray(obj.language) ? obj.language : [],
+        emergencyContact: obj.emergencyContact || { name: '', relation: '', phone: '' }
+      };
+    });
     res.json({ code: 0, msg: 'success', data: result });
   } catch (err) {
     res.json({ code: 1, msg: err.message });
@@ -28,7 +32,7 @@ router.post('/', async (req, res) => {
     if (employeeExists || customerExists) {
       return res.json({ code: 1, msg: 'ID已存在于员工或客户表，请更换唯一ID' });
     }
-    data.language = JSON.stringify(data.language || []);
+    data.language = data.language || [];
     const employee = await Employee.create(data);
     res.json({ code: 0, msg: 'success', data: employee });
   } catch (err) {
@@ -50,7 +54,7 @@ router.put('/:id', async (req, res) => {
         return res.json({ code: 1, msg: '新ID已存在于员工或客户表，请更换唯一ID' });
       }
     }
-    if (data.language) data.language = JSON.stringify(data.language);
+    data.language = data.language || [];
     await Employee.update(data, { where: { id } });
     res.json({ code: 0, msg: 'success' });
   } catch (err) {
