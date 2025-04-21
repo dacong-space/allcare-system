@@ -904,6 +904,41 @@ const CustomerInfo = () => {
     }
   };
 
+  // 导出所有客户 JSON 数据
+  const exportAllJSON = () => {
+    const json = JSON.stringify(customerData, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'customers.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 导出所有客户 Excel (CSV 格式)
+  const exportAllExcel = () => {
+    if (!customerData || customerData.length === 0) return;
+    const header = Object.keys(customerData[0]);
+    const csvRows = [header.join(',')];
+    for (const row of customerData) {
+      const values = header.map(field => `"${(row[field] ?? '').toString().replace(/"/g, '""')}"`);
+      csvRows.push(values.join(','));
+    }
+    const csvString = '\uFEFF' + csvRows.join('\r\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'customers.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // 渲染预览表格
   const renderPreviewTable = (record) => {
     if (!record) return null;
@@ -1112,13 +1147,13 @@ const CustomerInfo = () => {
                   key: 'json',
                   label: '导出JSON',
                   icon: <FileOutlined />,
-                  onClick: () => handleExport('json')
+                  onClick: () => exportAllJSON()
                 },
                 {
                   key: 'excel',
                   label: '导出Excel',
                   icon: <FileExcelOutlined />,
-                  onClick: () => handleExport('excel')
+                  onClick: () => exportAllExcel()
                 },
                 {
                   key: 'console',
