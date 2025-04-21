@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { apiFetch } from '../utils/api';
+import api from '../api';
 import { useNavigate } from 'react-router-dom';
 
 import { Form, Input, Button, message, Checkbox, Tooltip } from 'antd';
@@ -403,12 +403,7 @@ const Login = () => {
     setLoading(true);
     setLoginError('');
 
-    apiFetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: values.username, password: values.password })
-    })
-      .then(res => res.json())
+    api.post('/login', { username: values.username, password: values.password })
       .then(result => {
         if (result.code === 0 && result.data && result.data.token) {
           // 只存储到sessionStorage，刷新页面不退出，关闭标签页/浏览器自动退出
@@ -578,7 +573,7 @@ const Login = () => {
               color: '#6b7280',
               padding: '10px 0'
             }}>
-              <div style={{ lineHeight: '1.5' }}>Copyright © 2025 Allcare Health Care, LLC</div>
+              <div style={{ lineHeight: '1.5' }}>Copyright 2025 Allcare Health Care, LLC</div>
               <div style={{ color: '#9ca3af', marginTop: '4px', lineHeight: '1.5' }}>
                 Designed and developed by
               </div>

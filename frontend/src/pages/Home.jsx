@@ -416,40 +416,7 @@ const notifications = [
   }
 ];
 
-const quickActions = [
-  {
-    title: '任务看板',
-    icon: <DashboardOutlined />,
-    path: '/dashboard',
-    color: '#3B82F6',
-    bg: 'rgba(59, 130, 246, 0.1)',
-    description: '查看当前任务进度'
-  },
-  {
-    title: '客户信息',
-    icon: <UserOutlined />,
-    path: '/customer-info',
-    color: '#10B981',
-    bg: 'rgba(16, 185, 129, 0.1)',
-    description: '查看客户详细信息'
-  },
-  {
-    title: '员工管理',
-    icon: <TeamOutlined />,
-    path: '/employee-info',
-    color: '#F59E0B',
-    bg: 'rgba(245, 158, 11, 0.1)',
-    description: '查看员工详细信息'
-  },
-  {
-    title: '生成报表',
-    icon: <BarChartOutlined />,
-    path: '/reports',
-    color: '#8B5CF6',
-    bg: 'rgba(139, 92, 246, 0.1)',
-    description: '生成数据分析报表'
-  }
-];
+const quickActions = [];
 
 const Home = () => {
   const [employeeCount, setEmployeeCount] = useState(0);
@@ -597,77 +564,9 @@ const Home = () => {
 
       {/* 主要内容区 */}
       <Row gutter={[24, 24]}>
-        {/* 左侧列 - 任务和通知 */}
-        <Col xs={24} lg={16}>
-          <Row gutter={[0, 24]}>
-            {/* 待办任务 */}
-            <Col span={24}>
-              <TaskCard
-                title="待办任务"
-                extra={<Button type="link" onClick={() => window.location.href = '/dashboard'}>查看全部</Button>}
-              >
-                {pendingTasks.length > 0 ? pendingTasks.map(task => (
-                  <TaskItem
-                    key={task.id}
-                    priority={task.priority}
-                    completed={false}
-                  >
-                    <div className="task-priority"></div>
-                    <div className="task-header">
-                      <div className="task-title">
-                        <ClockCircleOutlined />
-                        {task.title}
-                      </div>
-                      {getStatusTag(task.status || (task.priority === 'high' ? 'in-progress' : 'pending'))}
-                    </div>
-                    <div className="task-meta">
-                      <span>负责人: {task.assignee}</span>
-                      <span>截止日期: {task.dueDate}</span>
-                    </div>
-                  </TaskItem>
-                )) : (
-                  <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                    <p>暂无待办任务</p>
-                  </div>
-                )}
-              </TaskCard>
-            </Col>
-
-
-          </Row>
-        </Col>
-
         {/* 右侧列 - 图表和系统状态 */}
-        <Col xs={24} lg={8}>
+        <Col xs={24} lg={24}>
           <Row gutter={[0, 24]}>
-
-
-            {/* 客户增长趋势 */}
-            <Col span={24}>
-              <ChartCard title="客户增长趋势">
-                <div style={{ padding: '20px' }}>
-                  {[
-                    { month: '1月', value: 120 },
-                    { month: '2月', value: 132 },
-                    { month: '3月', value: 145 },
-                    { month: '4月', value: 160 }
-                  ].map((item, index) => (
-                    <div key={index} style={{ marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <span>{item.month}</span>
-                        <span>{item.value} 人</span>
-                      </div>
-                      <Progress
-                        percent={(item.value / 200) * 100}
-                        showInfo={false}
-                        strokeColor="#3B82F6"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </ChartCard>
-            </Col>
-
             {/* 系统状态 */}
             <Col span={24}>
               <DashboardCard

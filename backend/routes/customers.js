@@ -1,10 +1,25 @@
 const express = require('express');
 const Customer = require('../models/Customer');
-// const { authMiddleware } = require('../middleware/auth');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Customers
+ *   description: Customer management and operations
+ */
 const router = express.Router();
 
 // 获取客户列表
+/**
+ * @swagger
+ * /customers:
+ *   get:
+ *     summary: Get list of all customers
+ *     tags: [Customers]
+ *     responses:
+ *       200:
+ *         description: Success, returns list of customers
+ */
 router.get('/', async (req, res) => {
   try {
     const customers = await Customer.findAll();
@@ -14,6 +29,9 @@ router.get('/', async (req, res) => {
       // 解析 preferredDate 字段
       data.preferredDate = data.preferredDate ? JSON.parse(data.preferredDate) : [];
       data.emergencyContact = data.emergencyContact ? JSON.parse(data.emergencyContact) : {};
+      data.birthday = data.birthday || null;
+      data.lastCarePlanDate = data.lastCarePlanDate || null;
+      data.spouse = data.spouse || null;
       return data;
     });
     res.json({ code: 0, msg: 'success', data: result });
@@ -23,6 +41,22 @@ router.get('/', async (req, res) => {
 });
 
 // 新增客户
+/**
+ * @swagger
+ * /customers:
+ *   post:
+ *     summary: Create a new customer
+ *     tags: [Customers]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Created customer object
+ */
 router.post('/', async (req, res) => {
   try {
     const data = req.body;
@@ -30,10 +64,6 @@ router.post('/', async (req, res) => {
     data.language = typeof data.language === 'string' ? data.language : JSON.stringify(data.language || []);
     data.preferredDate = typeof data.preferredDate === 'string' ? data.preferredDate : JSON.stringify(data.preferredDate || []);
     data.emergencyContact = typeof data.emergencyContact === 'string' ? data.emergencyContact : JSON.stringify(data.emergencyContact || {});
-    console.log('【DEBUG 后端序列化后数据】', { language: data.language, preferredDate: data.preferredDate, emergencyContact: data.emergencyContact });
-    console.log('【DEBUG type】language:', typeof data.language, data.language);
-    console.log('【DEBUG type】preferredDate:', typeof data.preferredDate, data.preferredDate);
-    console.log('【DEBUG type】emergencyContact:', typeof data.emergencyContact, data.emergencyContact);
     // 保证所有新增字段都传递到模型
     data.birthday = data.birthday || null;
     data.sharedAttemptHours = data.sharedAttemptHours || null;
@@ -42,7 +72,6 @@ router.post('/', async (req, res) => {
     data.healthNotes = data.healthNotes || null;
     data.lastCarePlanDate = data.lastCarePlanDate || null;
     data.spouse = data.spouse || null;  // 新增配偶字段
-    console.log('【DEBUG 后端收到数据】', data);
     const Employee = require('../models/Employee');
     // 检查客户表和员工表ID唯一性
     const customerExists = await Customer.findByPk(data.id);
@@ -52,8 +81,14 @@ router.post('/', async (req, res) => {
     }
     // 直接用 req.body 字段写入，不做多余处理
     const customer = await Customer.create(data);
-    console.log('【DEBUG 后端写入后】', customer.toJSON());
-    res.json({ code: 0, msg: 'success', data: customer.toJSON() });
+    const rec = customer.toJSON();
+    rec.language = rec.language ? JSON.parse(rec.language) : [];
+    rec.preferredDate = rec.preferredDate ? JSON.parse(rec.preferredDate) : [];
+    rec.emergencyContact = rec.emergencyContact ? JSON.parse(rec.emergencyContact) : {};
+    rec.birthday = rec.birthday || null;
+    rec.lastCarePlanDate = rec.lastCarePlanDate || null;
+    rec.spouse = rec.spouse || null;
+    res.json({ code: 0, msg: 'success', data: rec });
   } catch (err) {
     console.error('【DEBUG 后端异常】', err);
     res.json({ code: 1, msg: err.message });
@@ -61,8 +96,30 @@ router.post('/', async (req, res) => {
 });
 
 // 编辑客户（支持主键ID变更，事务安全）
+/**
+ * @swagger
+ * /customers/{id}:
+ *   put:
+ *     summary: Update a customer by ID
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Customer ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Updated customer
+ */
 router.put('/:id', async (req, res) => {
-  console.log('收到PUT /:id请求', req.params, req.body);
   const oldId = req.params.id;
   const data = req.body;
   const newId = data.id;
@@ -103,39 +160,31 @@ router.put('/:id', async (req, res) => {
 
   const t = await Customer.sequelize.transaction();
   try {
-    console.log(`[客户ID变更] oldId=${oldId}, newId=${newId}`);
     if (newId && newId !== oldId) {
       // 检查新ID在客户和员工表中是否唯一
       const Employee = require('../models/Employee');
       const exists = await Customer.findByPk(newId, { transaction: t });
       const empExists = await Employee.findByPk(newId);
       if (exists || empExists) {
-        console.log(`[客户ID变更] 新ID已存在于客户或员工表: ${newId}`);
         await t.rollback();
         return res.json({ code: 1, msg: '新ID已存在于客户或员工表，请更换唯一ID' });
       }
       // 查询原数据
       const oldCustomer = await Customer.findByPk(oldId, { transaction: t });
       if (!oldCustomer) {
-        console.log(`[客户ID变更] 原客户不存在: ${oldId}`);
         await t.rollback();
         return res.json({ code: 1, msg: '原客户不存在' });
       }
       // 构造新数据
       const newData = { ...oldCustomer.toJSON(), ...data, id: newId };
-      console.log(`[客户ID变更] 新建客户数据:`, newData);
       // 新建一条
       await Customer.create(newData, { transaction: t });
-      console.log(`[客户ID变更] 已创建新ID: ${newId}`);
       // 删除原ID
       await Customer.destroy({ where: { id: oldId }, transaction: t });
-      console.log(`[客户ID变更] 已删除旧ID: ${oldId}`);
       await t.commit();
-      console.log(`[客户ID变更] 事务提交成功`);
       return res.json({ code: 0, msg: 'success', newId });
     } else {
       const updateResult = await Customer.update(data, { where: { id: oldId }, transaction: t });
-      console.log(`[客户ID变更] 普通信息更新结果:`, updateResult);
       await t.commit();
       return res.json({ code: 0, msg: 'success' });
     }
@@ -147,6 +196,23 @@ router.put('/:id', async (req, res) => {
 });
 
 // 删除客户
+/**
+ * @swagger
+ * /customers/{id}:
+ *   delete:
+ *     summary: Delete a customer by ID
+ *     tags: [Customers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Customer ID
+ *     responses:
+ *       200:
+ *         description: Deletion successful
+ */
 router.delete('/:id', async (req, res) => {
   try {
     const id = req.params.id;

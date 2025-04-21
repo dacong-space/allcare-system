@@ -12,7 +12,6 @@ async function createSuperAdmin() {
     name: 'Ray',
     role: 'superadmin'
   });
-  console.log('超级管理员创建成功:', user.toJSON());
   process.exit();
 }
 

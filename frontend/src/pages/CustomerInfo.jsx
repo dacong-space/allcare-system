@@ -49,6 +49,15 @@ import styled from 'styled-components';
 import { createGlobalStyle } from 'styled-components';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  }
+});
 
 const GlobalStyle = createGlobalStyle`
   .edited-row {
@@ -271,17 +280,11 @@ const CustomerInfo = () => {
 
   // 初始化客户数据（仅从后端接口获取）
   useEffect(() => {
-    fetch(`${API_BASE}/customers`, {
-  headers: {
-    'Authorization': `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
-    'Content-Type': 'application/json'
-  }
-})
-      .then(res => res.json())
-      .then(result => {
-        if (result && result.code === 0) {
+    api.get('/customers')
+      .then(({ data }) => {
+        if (data.code === 0) {
           // 初始按下次家访日期排序 (120天后)
-          const sorted = result.data.sort((a, b) => {
+          const sorted = data.data.sort((a, b) => {
             const aDate = a.lastVisitDate ? new Date(a.lastVisitDate) : new Date(0);
             const bDate = b.lastVisitDate ? new Date(b.lastVisitDate) : new Date(0);
             aDate.setDate(aDate.getDate() + 120);
@@ -298,19 +301,15 @@ const CustomerInfo = () => {
       .catch(() => {
         setCustomerData([]);
         setCustomerCount(0);
-        message.error('加载客户列表失败'); // Show error message on customer fetch failure
+        message.error('加载客户列表失败');
       });
   }, []);
 
   // 拉取员工列表用于匹配手机号
   useEffect(() => {
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-    fetch('/api/employees', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(result => {
-        if (result?.code === 0) setEmployees(result.data);
+    api.get('/employees')
+      .then(({ data }) => {
+        if (data.code === 0) setEmployees(data.data);
       })
       .catch(() => message.error('加载员工列表失败'));
   }, []);
@@ -731,31 +730,17 @@ const CustomerInfo = () => {
           lastCarePlanDate: values.lastCarePlanDate,
           spouse: values.spouse
         };
-        fetch(`${API_BASE}/customers/${currentCustomer.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
-          },
-          body: JSON.stringify(updatedCustomer)
-        })
-          .then(res => res.json())
-          .then(result => {
-            if (result && result.code === 0) {
+        api.put(`/customers/${currentCustomer.id}`, updatedCustomer)
+          .then(({ data }) => {
+            if (data.code === 0) {
               message.success('客户信息已更新');
               setIsModalVisible(false);
               // 重新拉取客户数据
-              fetch(`${API_BASE}/customers`, {
-                headers: {
-                  Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
-                  'Content-Type': 'application/json'
-                }
-              })
-                .then(res => res.json())
-                .then(result => {
-                  if (result && result.code === 0) {
-                    setCustomerData(result.data);
-                    setCustomerCount(result.data.length);
+              api.get('/customers')
+                .then(({ data }) => {
+                  if (data.code === 0) {
+                    setCustomerData(data.data);
+                    setCustomerCount(data.data.length);
                     setEditedRowKey(currentCustomer.id);
                   }
                 });
@@ -828,33 +813,19 @@ const CustomerInfo = () => {
         };
 
         console.log('【DEBUG】提交新客户数据:', newCustomer);
-        fetch(`${API_BASE}/customers`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
-          },
-          body: JSON.stringify(newCustomer)
-        })
-          .then(res => res.json())
-          .then(result => {
-            console.log('【DEBUG】后端返回:', result);
-            if (result && result.code === 0) {
+        api.post('/customers', newCustomer)
+          .then(({ data }) => {
+            console.log('【DEBUG】后端返回:', data);
+            if (data.code === 0) {
               message.success('客户添加成功');
               setIsModalVisible(false);
               // 重新拉取客户数据
-              fetch(`${API_BASE}/customers`, {
-                headers: {
-                  Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
-                  'Content-Type': 'application/json'
-                }
-              })
-                .then(res => res.json())
-                .then(result => {
-                  console.log('【DEBUG】拉取客户列表(Post):', result.data);
-                  if (result && result.code === 0) {
-                    setCustomerData(result.data);
-                    setCustomerCount(result.data.length);
+              api.get('/customers')
+                .then(({ data }) => {
+                  console.log('【DEBUG】拉取客户列表(Post):', data.data);
+                  if (data.code === 0) {
+                    setCustomerData(data.data);
+                    setCustomerCount(data.data.length);
                   }
                 });
             } else {
@@ -983,31 +954,19 @@ const CustomerInfo = () => {
   // 处理删除
   const handleDelete = () => {
     if (!currentCustomer) return;
-    fetch(`${API_BASE}/customers/${currentCustomer.id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
-      }
-    })
-      .then(res => res.json())
-      .then(result => {
-        if (result && result.code === 0) {
+    api.delete(`/customers/${currentCustomer.id}`)
+      .then(({ data }) => {
+        if (data.code === 0) {
           message.success({
             content: `已删除客户 ${currentCustomer?.name} 的信息`,
             icon: <DeleteOutlined style={{ color: '#ef4444' }} />
           });
           // 重新拉取客户数据
-          fetch(`${API_BASE}/customers`, {
-            headers: {
-              Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
-              'Content-Type': 'application/json'
-            }
-          })
-            .then(res => res.json())
-            .then(result => {
-              if (result && result.code === 0) {
-                setCustomerData(result.data);
-                setCustomerCount(result.data.length);
+          api.get('/customers')
+            .then(({ data }) => {
+              if (data.code === 0) {
+                setCustomerData(data.data);
+                setCustomerCount(data.data.length);
               }
             });
           setIsDeleteModalVisible(false);

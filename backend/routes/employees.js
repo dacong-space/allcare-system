@@ -1,6 +1,5 @@
 const express = require('express');
 const Employee = require('../models/Employee');
-// const { authMiddleware } = require('../middleware/auth'); // 如需权限控制可启用
 
 const router = express.Router();
 
