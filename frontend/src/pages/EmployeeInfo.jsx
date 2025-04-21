@@ -34,6 +34,8 @@ import {
   DownloadOutlined,
   FileOutlined,
   FileExcelOutlined,
+  FilePdfOutlined,
+  ConsoleSqlOutlined,
   CodeOutlined,
   UserOutlined,
   CalendarOutlined,
@@ -45,6 +47,8 @@ import {
 } from '../components/CustomIcons';
 // import ScrollIndicator from '../components/ScrollIndicator';
 import styled from 'styled-components';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 // 样式组件
 const PageContainer = styled.div`
@@ -241,6 +245,9 @@ const EmployeeInfo = () => {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [form] = Form.useForm();
   const notesContainerRefs = useRef({});
+  const previewRef = useRef(null);
+  const [previewRecord, setPreviewRecord] = useState(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   // 初始化员工数据
   // 拉取员工列表
@@ -373,12 +380,27 @@ const EmployeeInfo = () => {
                 onClick: () => handleEdit(record)
               },
               {
+                key: '3',
+                icon: <FilePdfOutlined />,
+                label: '导出',
+                onClick: () => handleExportRecord(record)
+              },
+              {
+                key: '4',
+                icon: <ConsoleSqlOutlined />,
+                label: '数据',
+                onClick: () => {
+                  console.log('\n\n员工数据：', record);
+                  message.success('员工数据已打印到控制台，请按F12查看');
+                }
+              },
+              {
                 key: '2',
                 icon: <DeleteOutlined />,
                 label: '删除',
                 danger: true,
                 onClick: () => showDeleteConfirm(record)
-              },
+              }
             ],
           }}
           placement="bottomRight"
@@ -748,6 +770,49 @@ const EmployeeInfo = () => {
       message.error('删除失败');
     }
     setIsDeleteModalVisible(false);
+  };
+
+  // 个人导出预览
+  const handleExportRecord = (record) => {
+    setPreviewRecord(record);
+    setPreviewVisible(true);
+  };
+
+  // 下载并生成PDF
+  const handleDownloadRecord = async () => {
+    try {
+      const record = previewRecord;
+      const canvas = await html2canvas(previewRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const props = doc.getImageProperties(imgData);
+      const pageHeight = (props.height * pageWidth) / props.width;
+      doc.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+      doc.save(`Employee_${record.id}.pdf`);
+      setPreviewVisible(false);
+    } catch (err) {
+      console.error(err);
+      message.error('下载失败');
+    }
+  };
+
+  // 渲染个人预览表格
+  const renderPreviewTable = (record) => {
+    if (!record) return null;
+    const rows = Object.entries(record).map(([label, v]) => [label, v]);
+    return (
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <tbody>
+          {rows.map(([label, v]) => (
+            <tr key={label}>
+              <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold' }}>{label}</td>
+              <td style={{ border: '1px solid #000', padding: '8px' }}>{v}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
   };
 
   return (
@@ -1124,6 +1189,23 @@ const EmployeeInfo = () => {
       >
         <p>确定要删除员工 <strong>{currentEmployee?.name}</strong> 的信息吗？此操作不可撤销。</p>
       </Modal>
+
+      {previewVisible && (
+        <Modal
+          visible={previewVisible}
+          title="导出预览"
+          width={800}
+          onCancel={() => setPreviewVisible(false)}
+          footer={[
+            <Button key="download" type="primary" onClick={handleDownloadRecord}>下载PDF</Button>,
+            <Button key="cancel" onClick={() => setPreviewVisible(false)}>取消</Button>
+          ]}
+        >
+          <div ref={previewRef} style={{ padding: '20px', background: '#fff' }}>
+            {renderPreviewTable(previewRecord)}
+          </div>
+        </Modal>
+      )}
     </PageContainer>
   );
 };
