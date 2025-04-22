@@ -1,5 +1,9 @@
 import React, { useState, useContext } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Breadcrumb, Typography, Grid } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Breadcrumb, Typography, Grid } from 'antd';
+import { IconButton, Badge as MUIBadge, Menu as MUIMenu, MenuItem as MUIMenuItem, Divider, Avatar as MUIAvatar } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import './MenuAnimation.css';
 import {
   MenuUnfoldOutlined,
@@ -31,9 +35,9 @@ const StyledLayout = styled(Layout)`
 
 const StyledHeader = styled(Header)`
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 24px 0 0;
+  justify-content: flex-end;
+  padding: 0 16px;
   background: var(--header-bg);
   color: var(--text-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -42,12 +46,13 @@ const StyledHeader = styled(Header)`
   right: 0;
   width: calc(100% - ${props => props.siderCollapsed ? '80px' : '200px'});
   height: 64px;
-  line-height: 64px;
   z-index: 1000;
   transition: all 0.3s;
   margin-left: ${props => props.siderCollapsed ? '80px' : '200px'};
   border-bottom: 1px solid var(--border-color);
-
+  padding: 0 28px 0 16px;
+  gap: 16px;
+  
   @media (max-width: 768px) {
     margin-left: 0;
     width: 100%;
@@ -95,43 +100,38 @@ const StyledContent = styled(Content)`
 `;
 
 const Logo = styled.div`
-  height: 70px;
+  height: 40px;
+  min-width: 160px;
   display: flex;
   align-items: center;
-  justify-content: ${props => props.siderCollapsed ? 'center' : 'flex-start'};
+  background: var(--header-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 0 20px;
+  margin-right: 20px;
   color: var(--primary-color);
   font-weight: 700;
-  letter-spacing: -0.5px;
-  transition: all 0.3s;
-  background: var(--sidebar-bg);
-  border-bottom: 1px solid var(--border-color);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  padding: 0 ${props => props.siderCollapsed ? '16px' : '24px'};
+  transition: all 0.3s;
   cursor: pointer;
-
+  
   img {
-    height: 42px;
-    width: 42px;
-    border-radius: 50%;
+    height: 32px;
+    width: 32px;
+    border-radius: 8px;
     object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  &:hover img {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-right: 10px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
 
   .logo-text {
-    margin-left: 12px;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
-    transition: color 0.3s ease;
-  }
-
-  &:hover .logo-text {
-    color: var(--primary-color-light, #40a9ff);
+    letter-spacing: -0.5px;
+    color: var(--primary-color);
+    margin-left: 0;
+    transition: color 0.3s;
   }
 `;
 
@@ -302,6 +302,9 @@ const MainLayout = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   const location = useLocation();
   const screens = Grid.useBreakpoint();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   // 获取当前路径的面包屑
   const getBreadcrumb = (path) => {
@@ -379,6 +382,9 @@ const MainLayout = () => {
               <Logo siderCollapsed={collapsed}>
                 <img src="/images/logo.jpg" alt="Logo" />
                 {!collapsed && <span className="logo-text">Allcare</span>}
+                <div className="menu-toggle-btn trigger-button" onClick={() => setCollapsed(!collapsed)} style={{ fontSize: '16px', cursor: 'pointer', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px', color: 'var(--text-primary)', borderRadius: '4px', transition: 'all 0.3s ease' }}>
+                  {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                </div>
               </Logo>
             </Link>
             <Menu
@@ -435,57 +441,24 @@ const MainLayout = () => {
 
       <Layout>
         <StyledHeader siderCollapsed={collapsed}>
-          <HeaderLeft>
-            <div
-              className="menu-toggle-btn trigger-button"
-              onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: '18px',
-                cursor: 'pointer',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-                paddingLeft: '8px',
-                color: 'var(--text-primary)',
-                borderRadius: '4px',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            </div>
-          </HeaderLeft>
-
-          <HeaderRight>
-            <ThemeToggle onClick={toggleTheme}>
-              {theme === 'light' ? '🌙' : '☀️'}
-            </ThemeToggle>
-
-            <Badge count={5} dot>
-              <Button
-                type="text"
-                icon={<BellOutlined />}
-                className="notification-button"
-                style={{
-                  fontSize: '16px',
-                  transition: 'all 0.3s ease',
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '50%'
-                }}
-              />
-            </Badge>
-
-            <Dropdown menu={userMenu} placement="bottomRight">
-              <UserInfo>
-                <Avatar icon={<UserOutlined />} />
-                <span className="username">{user?.name || '用户'}</span>
-              </UserInfo>
-            </Dropdown>
+          <HeaderRight style={{ display: 'flex', alignItems: 'center' }}>            
+            <IconButton color="inherit" onClick={toggleTheme}>
+              {theme === 'light' ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
+            <MUIBadge badgeContent={5} color="secondary" sx={{ mx: 1 }}>
+              <IconButton color="inherit"><NotificationsIcon /></IconButton>
+            </MUIBadge>
+            <IconButton color="inherit" onClick={handleMenuOpen}>
+              <MUIAvatar sx={{ width:32, height:32 }} />
+            </IconButton>
+            <MUIMenu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}
+                     anchorOrigin={{ vertical:'bottom', horizontal:'right' }}
+                     transformOrigin={{ vertical:'top', horizontal:'right' }}>
+              <MUIMenuItem onClick={()=>{handleMenuClose();}}>个人资料</MUIMenuItem>
+              <MUIMenuItem onClick={()=>{handleMenuClose();}}>设置</MUIMenuItem>
+              <Divider />
+              <MUIMenuItem onClick={()=>{handleMenuClose(); logout();}}>退出登录</MUIMenuItem>
+            </MUIMenu>
           </HeaderRight>
         </StyledHeader>
 
