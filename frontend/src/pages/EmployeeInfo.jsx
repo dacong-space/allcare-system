@@ -282,9 +282,9 @@ const EmployeeInfo = () => {
         headers: { 'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : '' }
       });
       const result = await res.json();
-      console.log('fetchEmployees 执行结果:', result.data);
       if (result.code === 0) {
-        setEmployees(result.data);
+        // 过滤掉 id 为空的员工数据
+        setEmployees(result.data.filter(emp => emp.id));
       } else {
         setEmployees([]);
       }
@@ -314,7 +314,7 @@ const EmployeeInfo = () => {
           ) : (
             <FemaleAvatar icon={<MinimalistWomanIcon />} />
           )}
-          <span>{text}</span>
+          <span>{text || '无'}</span>
         </Space>
       ),
     },
@@ -323,6 +323,7 @@ const EmployeeInfo = () => {
       dataIndex: 'gender',
       key: 'gender',
       width: 80,
+      render: (gender) => gender || '无',
     },
     {
       title: '年龄',
@@ -331,20 +332,21 @@ const EmployeeInfo = () => {
       width: 80,
       sorter: (a, b) => (a.age || 0) - (b.age || 0),
       sortDirections: ['ascend','descend'],
-      render: (age) => age != null ? age : '-',
+      render: (age) => age != null ? age : '无',
     },
     {
       title: '职位',
       dataIndex: 'position',
       key: 'position',
       width: 140,
+      render: (position) => position || '无',
     },
     {
       title: 'CPR过期日期',
       dataIndex: 'cprExpire',
       key: 'cprExpire',
       width: 140,
-      render: (text) => text ? dayjs(text).format('MM-DD-YYYY') : '-',
+      render: (text) => text ? dayjs(text).format('MM-DD-YYYY') : '无',
       sorter: (a, b) => {
         const aVal = a.cprExpire ? dayjs(a.cprExpire).valueOf() : 0;
         const bVal = b.cprExpire ? dayjs(b.cprExpire).valueOf() : 0;
@@ -357,7 +359,7 @@ const EmployeeInfo = () => {
       dataIndex: 'latestTrainingDate',
       key: 'latestTrainingDate',
       width: 140,
-      render: (text) => text ? dayjs(text).format('MM-DD-YYYY') : '-',
+      render: (text) => text ? dayjs(text).format('MM-DD-YYYY') : '无',
       sorter: (a, b) => {
         const aVal = a.latestTrainingDate ? dayjs(a.latestTrainingDate).valueOf() : 0;
         const bVal = b.latestTrainingDate ? dayjs(b.latestTrainingDate).valueOf() : 0;
@@ -513,6 +515,7 @@ const EmployeeInfo = () => {
 
   // 显示编辑员工模态框
   const handleEdit = (record) => {
+    console.log('编辑员工 record:', record);
     setCurrentEmployee(record);
 
     // 处理日期格式
@@ -579,7 +582,29 @@ const EmployeeInfo = () => {
       if (values.latestExamDate) {
         values.latestExamDate = values.latestExamDate.format('YYYY-MM-DD');
       }
+      // Ensure all optional fields are empty strings if not filled
+      const optionalFields = ['phone', 'email', 'address', 'position', 'note'];
+      optionalFields.forEach(field => {
+        if (values[field] === undefined || values[field] === null) {
+          values[field] = '';
+        }
+      });
+      // Handle emergencyContact subfields
+      if (!values.emergencyContact) values.emergencyContact = {};
+      ['name', 'relation', 'phone'].forEach(sub => {
+        if (!values.emergencyContact[sub]) values.emergencyContact[sub] = '';
+      });
+      // Handle language as array or empty string
+      if (!values.language) values.language = '';
+      if (Array.isArray(values.language) && values.language.length === 0) values.language = '';
+      if (!values.email) values.email = '';
+
       if (currentEmployee) {
+        if (!currentEmployee.id) {
+          message.error('员工ID丢失，无法保存修改！');
+          console.error('currentEmployee:', currentEmployee);
+          return;
+        }
         // 调用后端接口
         const res = await fetch(`/api/employees/${currentEmployee.id}`, {
           method: 'PUT',
@@ -870,7 +895,7 @@ const EmployeeInfo = () => {
       } else if (v !== null && typeof v === 'object') {
         display = JSON.stringify(v);
       } else {
-        display = v;
+        display = (v === undefined || v === null || v === '') ? '无' : v;
       }
       return { label: f.label, value: display, key: f.key };
     });
@@ -967,61 +992,61 @@ const EmployeeInfo = () => {
                       <Title level={5}>基础信息</Title>
                       <DetailItem>
                         <span className="label">姓名:</span>
-                        <span className="value">{record.name}</span>
+                        <span className="value">{record.name || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">ID:</span>
-                        <span className="value">{record.id}</span>
+                        <span className="value">{record.id || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">年龄:</span>
-                        <span className="value">{record.age}</span>
+                        <span className="value">{record.age || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">性别:</span>
-                        <span className="value">{record.gender}</span>
+                        <span className="value">{record.gender || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">生日:</span>
-                        <span className="value">{record.birthday ? dayjs(record.birthday).format('MM-DD-YYYY') : '-'}</span>
+                        <span className="value">{record.birthday ? dayjs(record.birthday).format('MM-DD-YYYY') : '无'}</span>
                       </DetailItem>
                     </Col>
                     <Col span={8}>
                       <Title level={5}>时间信息</Title>
                       <DetailItem>
                         <span className="label">入职时间:</span>
-                        <span className="value">{record.joinDate ? dayjs(record.joinDate).format('MM-DD-YYYY') : '-'}</span>
+                        <span className="value">{record.joinDate ? dayjs(record.joinDate).format('MM-DD-YYYY') : '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">CPR过期日期:</span>
-                        <span className="value">{record.cprExpire ? dayjs(record.cprExpire).format('MM-DD-YYYY') : '-'}</span>
+                        <span className="value">{record.cprExpire ? dayjs(record.cprExpire).format('MM-DD-YYYY') : '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">最新培训日期:</span>
-                        <span className="value">{record.latestTrainingDate ? dayjs(record.latestTrainingDate).format('MM-DD-YYYY') : '-'}</span>
+                        <span className="value">{record.latestTrainingDate ? dayjs(record.latestTrainingDate).format('MM-DD-YYYY') : '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">证件有效期:</span>
-                        <span className="value">{record.documentExpire ? dayjs(record.documentExpire).format('MM-DD-YYYY') : '-'}</span>
+                        <span className="value">{record.documentExpire ? dayjs(record.documentExpire).format('MM-DD-YYYY') : '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">最新体检日期:</span>
-                        <span className="value">{record.latestExamDate ? dayjs(record.latestExamDate).format('MM-DD-YYYY') : '-'}</span>
+                        <span className="value">{record.latestExamDate ? dayjs(record.latestExamDate).format('MM-DD-YYYY') : '无'}</span>
                       </DetailItem>
                     </Col>
                     <Col span={8}>
                       <Title level={5}>联系信息</Title>
                       <DetailItem>
                         <span className="label">手机:</span>
-                        <span className="value">{record.phone}</span>
+                        <span className="value">{record.phone || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">邮箱:</span>
-                        <span className="value">{record.email}</span>
+                        <span className="value">{record.email || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">地址:</span>
-                        <span className="value">{record.address || '-'}</span>
+                        <span className="value">{record.address || '无'}</span>
                       </DetailItem>
                     </Col>
 
@@ -1030,30 +1055,30 @@ const EmployeeInfo = () => {
                       <Title level={5}>紧急联系人</Title>
                       <DetailItem>
                         <span className="label">姓名:</span>
-                        <span className="value">{record.emergencyContact?.name || '-'}</span>
+                        <span className="value">{record.emergencyContact?.name || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">关系:</span>
-                        <span className="value">{record.emergencyContact?.relation || '-'}</span>
+                        <span className="value">{record.emergencyContact?.relation || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">电话:</span>
-                        <span className="value">{record.emergencyContact?.phone || '-'}</span>
+                        <span className="value">{record.emergencyContact?.phone || '无'}</span>
                       </DetailItem>
                     </Col>
                     <Col span={8}>
                       <Title level={5}>其他信息</Title>
                       <DetailItem>
                         <span className="label">语言:</span>
-                        <span className="value">{Array.isArray(record.language) ? record.language.join(', ') : record.language || '-'}</span>
+                        <span className="value">{Array.isArray(record.language) ? (record.language.length > 0 ? record.language.join(', ') : '无') : (record.language || '无')}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">职位:</span>
-                        <span className="value">{record.position}</span>
+                        <span className="value">{record.position || '无'}</span>
                       </DetailItem>
                       <DetailItem>
                         <span className="label">状态:</span>
-                        <span className="value">{getStatusTag(record.status)}</span>
+                        <span className="value">{getStatusTag(record.status) || '无'}</span>
                       </DetailItem>
                     </Col>
 
@@ -1061,7 +1086,7 @@ const EmployeeInfo = () => {
                     <Col span={24}>
                       <Title level={5}>备注</Title>
                       <div style={{ whiteSpace: 'pre-wrap', marginBottom: '12px', textAlign: 'left' }}>
-                        {record.note || '-'}
+                        {record.note || '无'}
                       </div>
                     </Col>
                   </Row>
@@ -1106,8 +1131,9 @@ const EmployeeInfo = () => {
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>  
-              <Input placeholder="请输入姓名" />  
-            </Form.Item>
+  <Input placeholder="请输入姓名" />  
+</Form.Item>
+            
             <Form.Item name="id" label="ID">  
               <Input placeholder="请输入ID" />  
             </Form.Item>
@@ -1144,33 +1170,31 @@ const EmployeeInfo = () => {
               </Select>  
             </Form.Item>
             <Form.Item  
-              name="phone"  
-              label="手机"  
-              rules={[  
-                { required: true, message: '请输入手机号码' },  
-                { pattern: /^\(\d{3}\)\d{3}-\d{4}$/, message: '请按照(xxx)xxx-xxxx的格式输入' }  
-              ]}  
-            >  
-              <Input  
-                placeholder="(xxx)xxx-xxxx"  
-                maxLength={13}  
-                onChange={(e) => {  
-                  const value = e.target.value.replace(/\D/g, '');  
-                  const trimmed = value.slice(0, 10);  
-                  let formatted = '';  
-                  if (trimmed.length > 0) {  
-                    formatted = `(${trimmed.slice(0, 3)}`;  
-                    if (trimmed.length > 3) formatted += `)${trimmed.slice(3, 6)}`;  
-                    else formatted += ')';  
-                    if (trimmed.length > 6) formatted += `-${trimmed.slice(6)}`;  
-                  }  
-                  form.setFieldValue('phone', formatted);  
-                }}  
-              />  
-            </Form.Item>
+  name="phone"  
+  label="手机"  
+  rules={[  
+    { pattern: /^\(\d{3}\)\d{3}-\d{4}$/, message: '请按照(xxx)xxx-xxxx的格式输入' }  
+  ]}  
+>  
+  <Input  
+    placeholder="(xxx)xxx-xxxx"  
+    maxLength={13}  
+    onChange={(e) => {  
+      const value = e.target.value.replace(/\D/g, '');  
+      const trimmed = value.slice(0, 10);  
+      let formatted = '';  
+      if (trimmed.length > 0) {  
+        formatted = `(${trimmed.slice(0, 3)}`;  
+        if (trimmed.length > 3) formatted += `)${trimmed.slice(3, 6)}`;  
+        else formatted += ')';  
+        if (trimmed.length > 6) formatted += `-${trimmed.slice(6)}`;  
+      }  
+      form.setFieldValue('phone', formatted);  
+    }}  
+  />  
+</Form.Item>
             <Form.Item name="email" label="Email" rules={[
-              { type: 'email', message: '请输入有效的邮箱' },
-              { required: true, message: '请输入邮箱' }
+              { type: 'email', message: '请输入有效的邮箱' }
             ]}>
               <Input placeholder="请输入邮箱" />
             </Form.Item>
