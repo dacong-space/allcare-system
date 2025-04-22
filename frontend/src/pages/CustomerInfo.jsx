@@ -862,6 +862,25 @@ const CustomerInfo = () => {
     }
   };
 
+  // 下载并生成Excel（CSV）
+  const handleDownloadExcel = () => {
+    if (!previewRecord) return;
+    const header = Object.keys(previewRecord);
+    const csvRows = [header.join(',')];
+    const values = header.map(f => `"${String(previewRecord[f] ?? '').replace(/"/g, '""')}"`);
+    csvRows.push(values.join(','));
+    const csvString = '\uFEFF' + csvRows.join('\r\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `客户_${previewRecord.id}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // 导出所有客户 JSON 数据
   const exportAllJSON = () => {
     const json = JSON.stringify(customerData, null, 2);
@@ -1342,6 +1361,7 @@ const CustomerInfo = () => {
           width={800}
           onCancel={() => setPreviewVisible(false)}
           footer={[
+            <Button key="excel" type="primary" onClick={handleDownloadExcel}>下载Excel</Button>,
             <Button key="download" type="primary" onClick={handleDownload}>下载PDF</Button>,
             <Button key="cancel" onClick={() => setPreviewVisible(false)}>取消</Button>
           ]}

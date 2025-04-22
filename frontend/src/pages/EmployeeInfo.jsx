@@ -248,6 +248,26 @@ const EmployeeInfo = () => {
   const previewRef = useRef(null);
   const [previewRecord, setPreviewRecord] = useState(null);
   const [previewVisible, setPreviewVisible] = useState(false);
+  // 导出字段顺序与标签
+  const exportFields = [
+    { key: 'id', label: 'ID' },
+    { key: 'name', label: '姓名' },
+    { key: 'age', label: '年龄' },
+    { key: 'gender', label: '性别' },
+    { key: 'birthday', label: '生日' },
+    { key: 'language', label: '语言' },
+    { key: 'position', label: '职位' },
+    { key: 'status', label: '状态' },
+    { key: 'phone', label: '手机号' },
+    { key: 'email', label: 'Email' },
+    { key: 'joinDate', label: '入职时间' },
+    { key: 'cprExpire', label: 'CPR过期日期' },
+    { key: 'documentExpire', label: '证件过期日期' },
+    { key: 'latestTrainingDate', label: '最新培训日期' },
+    { key: 'address', label: '地址' },
+    { key: 'emergencyContact', label: '紧急联系人' },
+    { key: 'note', label: '备注' }
+  ];
 
   // 初始化员工数据
   // 拉取员工列表
@@ -797,17 +817,69 @@ const EmployeeInfo = () => {
     }
   };
 
+  // 下载并生成Excel（CSV）
+  const handleDownloadExcelRecord = () => {
+    if (!previewRecord) return;
+    // 使用 exportFields 定义顺序与标签，并格式化字段值
+    const keys = exportFields.map(f => f.key);
+    const labels = exportFields.map(f => f.label);
+    const csvRows = [labels.join(',')];
+    const values = keys.map(k => {
+      const v = previewRecord[k];
+      let cell = '';
+      if (k === 'emergencyContact' && v) {
+        cell = `姓名：${v.name} || 关系：${v.relation} || 手机号：${v.phone}`;
+      } else if (Array.isArray(v)) {
+        cell = v.join(',');
+      } else if (typeof v === 'string' && dayjs(v).isValid()) {
+        cell = dayjs(v).format('MM-DD-YYYY');
+      } else if (v !== null && typeof v === 'object') {
+        cell = JSON.stringify(v);
+      } else {
+        cell = v ?? '';
+      }
+      return `"${cell.replace(/"/g, '""')}"`;
+    });
+    csvRows.push(values.join(','));
+    const csvString = '\uFEFF' + csvRows.join('\r\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Employee_${previewRecord.id}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // 渲染个人预览表格
   const renderPreviewTable = (record) => {
     if (!record) return null;
-    const rows = Object.entries(record).map(([label, v]) => [label, v]);
+    // 使用 exportFields 定义预览顺序与标签和格式化值
+    const rows = exportFields.map(f => {
+      const v = record[f.key];
+      let display = '';
+      if (f.key === 'emergencyContact' && v) {
+        display = `姓名：${v.name} || 关系：${v.relation} || 手机号：${v.phone}`;
+      } else if (Array.isArray(v)) {
+        display = v.join(',');
+      } else if (typeof v === 'string' && dayjs(v).isValid()) {
+        display = dayjs(v).format('MM-DD-YYYY');
+      } else if (v !== null && typeof v === 'object') {
+        display = JSON.stringify(v);
+      } else {
+        display = v;
+      }
+      return { label: f.label, value: display, key: f.key };
+    });
     return (
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <tbody>
-          {rows.map(([label, v]) => (
-            <tr key={label}>
+          {rows.map(({ key, label, value }) => (
+            <tr key={key}>
               <td style={{ border: '1px solid #000', padding: '8px', fontWeight: 'bold' }}>{label}</td>
-              <td style={{ border: '1px solid #000', padding: '8px' }}>{v}</td>
+              <td style={{ border: '1px solid #000', padding: '8px' }}>{value}</td>
             </tr>
           ))}
         </tbody>
@@ -1010,7 +1082,7 @@ const EmployeeInfo = () => {
       {/* 添加/编辑员工模态框 */}
       <Modal
         title={currentEmployee ? "编辑员工信息" : "添加新员工"}
-        open={isModalVisible}
+        visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={[
           <Button key="cancel" onClick={() => setIsModalVisible(false)}>
@@ -1175,7 +1247,7 @@ const EmployeeInfo = () => {
       {/* 删除确认模态框 */}
       <Modal
         title="确认删除"
-        open={isDeleteModalVisible}
+        visible={isDeleteModalVisible}
         onCancel={() => setIsDeleteModalVisible(false)}
         footer={[
           <Button key="cancel" onClick={() => setIsDeleteModalVisible(false)}>
@@ -1190,6 +1262,7 @@ const EmployeeInfo = () => {
         <p>确定要删除员工 <strong>{currentEmployee?.name}</strong> 的信息吗？此操作不可撤销。</p>
       </Modal>
 
+      {/* 个人导出预览 */}
       {previewVisible && (
         <Modal
           visible={previewVisible}
@@ -1197,6 +1270,7 @@ const EmployeeInfo = () => {
           width={800}
           onCancel={() => setPreviewVisible(false)}
           footer={[
+            <Button key="excel" type="primary" onClick={handleDownloadExcelRecord}>下载Excel</Button>,
             <Button key="download" type="primary" onClick={handleDownloadRecord}>下载PDF</Button>,
             <Button key="cancel" onClick={() => setPreviewVisible(false)}>取消</Button>
           ]}
