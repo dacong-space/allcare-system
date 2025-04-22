@@ -86,7 +86,7 @@ const SearchContainer = styled.div`
 const TableCard = styled(Card)`
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  overflow: hidden;
+  overflow: visible;
 
   .ant-card-body {
     padding: 0;
@@ -1095,7 +1095,7 @@ const EmployeeInfo = () => {
             }
           }}
           pagination={{
-            pageSize: 10,
+            defaultPageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total) => `共 ${total} 条记录`,
@@ -1130,7 +1130,7 @@ const EmployeeInfo = () => {
           }}
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>  
+            <Form.Item name="name" label="姓名" >  
   <Input placeholder="请输入姓名" />  
 </Form.Item>
             
@@ -1193,10 +1193,8 @@ const EmployeeInfo = () => {
     }}  
   />  
 </Form.Item>
-            <Form.Item name="email" label="Email" rules={[
-              { type: 'email', message: '请输入有效的邮箱' }
-            ]}>
-              <Input placeholder="请输入邮箱" />
+            <Form.Item name="email" label="Email" >  
+              <Input placeholder="请输入邮箱" />  
             </Form.Item>
             <Form.Item name="joinDate" label="入职时间">
               <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />

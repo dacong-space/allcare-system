@@ -33,10 +33,13 @@ const Employee = sequelize.define('Employee', {
   },
   email: {
     type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
+    allowNull: true,
     validate: {
-      isEmail: true
+      isEmailOrEmpty(value) {
+        if (value && value.length > 0 && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value)) {
+          throw new Error('请输入有效的邮箱');
+        }
+      }
     }
   },
   joinDate: DataTypes.DATE,
@@ -49,7 +52,6 @@ const Employee = sequelize.define('Employee', {
   note: DataTypes.TEXT
 }, {
   indexes: [
-    { unique: true, fields: ['email'] },
     { fields: ['status'] },
     { fields: ['joinDate'] }
   ]
