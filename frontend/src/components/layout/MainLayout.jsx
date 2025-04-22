@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Breadcrumb, Typography } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, Breadcrumb, Typography, Grid } from 'antd';
 import './MenuAnimation.css';
 import {
   MenuUnfoldOutlined,
@@ -301,6 +301,7 @@ const MainLayout = () => {
   const { user, logout } = useContext(AuthContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const location = useLocation();
+  const screens = Grid.useBreakpoint();
 
   // 获取当前路径的面包屑
   const getBreadcrumb = (path) => {
@@ -352,6 +353,9 @@ const MainLayout = () => {
   return (
     <StyledLayout>
       <Sider
+        breakpoint="md"
+        collapsedWidth={0}
+        onBreakpoint={(broken) => setCollapsed(broken)}
         trigger={null}
         collapsible
         collapsed={collapsed}
@@ -484,7 +488,7 @@ const MainLayout = () => {
           </HeaderRight>
         </StyledHeader>
 
-        <StyledContent siderCollapsed={collapsed}>
+        <StyledContent siderCollapsed={collapsed} onClick={() => !screens.md && !collapsed && setCollapsed(true)}>
           <Outlet />
         </StyledContent>
       </Layout>

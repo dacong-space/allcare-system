@@ -57,6 +57,10 @@ const PageContainer = styled.div`
   min-height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
   overflow-y: auto;
+
+  @media (max-width: 576px) {
+    padding: 12px 16px 16px;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -71,6 +75,16 @@ const PageHeader = styled.div`
     margin: 0;
     color: var(--text-primary);
   }
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+  }
 `;
 
 const SearchContainer = styled.div`
@@ -81,6 +95,14 @@ const SearchContainer = styled.div`
     border-radius: 8px;
     width: 300px;
   }
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    gap: 8px;
+    .ant-input-affix-wrapper {
+      width: 100%;
+    }
+  }
 `;
 
 const TableCard = styled(Card)`
@@ -88,45 +110,20 @@ const TableCard = styled(Card)`
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
   overflow: visible;
 
-  .ant-card-body {
-    padding: 0;
-  }
-
   .ant-table {
     background: transparent;
   }
-
-  .ant-table-thead > tr > th {
-    background: var(--bg-secondary);
-    font-weight: 600;
-    color: var(--text-primary);
-    padding: 16px;
-    border-bottom: 1px solid var(--border-color);
+  .ant-table-container {
+    overflow-x: auto;
+  }
+  .ant-table {
+    min-width: 600px;
   }
 
-  .ant-table-tbody > tr > td {
-    border-bottom: 1px solid var(--border-color);
-    padding: 16px;
-    transition: background 0.2s;
-  }
-
-  .ant-table-tbody > tr:hover > td {
-    background: var(--hover-color);
-  }
-
-  .ant-table-tbody > tr.edited-row > td {
-    background: #ecfdf5;
-    animation: highlight-fade 3s ease-in-out;
-  }
-
-  .ant-pagination {
-    margin: 16px;
-    padding: 0;
-  }
-
-  @keyframes highlight-fade {
-    0%, 70% { background-color: #d1fae5; }
-    100% { background-color: #ecfdf5; }
+  @media (max-width: 576px) {
+    .ant-table {
+      min-width: auto;
+    }
   }
 `;
 
@@ -145,6 +142,12 @@ const ActionButton = styled(Button)`
   .anticon {
     font-size: 14px;
     margin-right: 6px;
+  }
+
+  @media (max-width: 576px) {
+    width: 100%;
+    font-size: 12px;
+    padding: 0 8px;
   }
 `;
 
@@ -220,7 +223,6 @@ const DetailItem = styled.div`
     font-weight: 500;
     font-size: 14px;
   }
-  }
 `;
 
 const MaleAvatar = styled(Avatar)`
@@ -233,6 +235,12 @@ const FemaleAvatar = styled(Avatar)`
   background-color: #f0f2f5;
   color: #eb2f96;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+`;
+
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
 `;
 
 const EmployeeInfo = () => {
@@ -355,14 +363,14 @@ const EmployeeInfo = () => {
       sortDirections: ['ascend', 'descend'],
     },
     {
-      title: '最新培训日期',
+      title: '下次培训日期',
       dataIndex: 'latestTrainingDate',
       key: 'latestTrainingDate',
       width: 140,
-      render: (text) => text ? dayjs(text).format('MM-DD-YYYY') : '无',
+      render: (text) => text ? dayjs(text).add(365, 'day').format('MM-DD-YYYY') : '无',
       sorter: (a, b) => {
-        const aVal = a.latestTrainingDate ? dayjs(a.latestTrainingDate).valueOf() : 0;
-        const bVal = b.latestTrainingDate ? dayjs(b.latestTrainingDate).valueOf() : 0;
+        const aVal = a.latestTrainingDate ? dayjs(a.latestTrainingDate).add(365, 'day').valueOf() : 0;
+        const bVal = b.latestTrainingDate ? dayjs(b.latestTrainingDate).add(365, 'day').valueOf() : 0;
         return aVal - bVal;
       },
       sortDirections: ['ascend', 'descend'],
@@ -1129,10 +1137,10 @@ const EmployeeInfo = () => {
             status: 'active'
           }}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FormGrid>
             <Form.Item name="name" label="姓名" >  
-  <Input placeholder="请输入姓名" />  
-</Form.Item>
+              <Input placeholder="请输入姓名" />  
+            </Form.Item>
             
             <Form.Item name="id" label="ID">  
               <Input placeholder="请输入ID" />  
@@ -1170,29 +1178,29 @@ const EmployeeInfo = () => {
               </Select>  
             </Form.Item>
             <Form.Item  
-  name="phone"  
-  label="手机"  
-  rules={[  
-    { pattern: /^\(\d{3}\)\d{3}-\d{4}$/, message: '请按照(xxx)xxx-xxxx的格式输入' }  
-  ]}  
->  
-  <Input  
-    placeholder="(xxx)xxx-xxxx"  
-    maxLength={13}  
-    onChange={(e) => {  
-      const value = e.target.value.replace(/\D/g, '');  
-      const trimmed = value.slice(0, 10);  
-      let formatted = '';  
-      if (trimmed.length > 0) {  
-        formatted = `(${trimmed.slice(0, 3)}`;  
-        if (trimmed.length > 3) formatted += `)${trimmed.slice(3, 6)}`;  
-        else formatted += ')';  
-        if (trimmed.length > 6) formatted += `-${trimmed.slice(6)}`;  
-      }  
-      form.setFieldValue('phone', formatted);  
-    }}  
-  />  
-</Form.Item>
+              name="phone"  
+              label="手机"  
+              rules={[  
+                { pattern: /^\(\d{3}\)\d{3}-\d{4}$/, message: '请按照(xxx)xxx-xxxx的格式输入' }  
+              ]}  
+            >  
+              <Input  
+                placeholder="(xxx)xxx-xxxx"  
+                maxLength={13}  
+                onChange={(e) => {  
+                  const value = e.target.value.replace(/\D/g, '');  
+                  const trimmed = value.slice(0, 10);  
+                  let formatted = '';  
+                  if (trimmed.length > 0) {  
+                    formatted = `(${trimmed.slice(0, 3)}`;  
+                    if (trimmed.length > 3) formatted += `)${trimmed.slice(3, 6)}`;  
+                    else formatted += ')';  
+                    if (trimmed.length > 6) formatted += `-${trimmed.slice(6)}`;  
+                  }  
+                  form.setFieldValue('phone', formatted);  
+                }}  
+              />  
+            </Form.Item>
             <Form.Item name="email" label="Email" >  
               <Input placeholder="请输入邮箱" />  
             </Form.Item>
@@ -1211,14 +1219,14 @@ const EmployeeInfo = () => {
             <Form.Item name="latestExamDate" label="最新体检日期">
               <DatePicker style={{ width: '100%' }} format="MM-DD-YYYY" placeholder="MM-DD-YYYY" />
             </Form.Item>
-          </div>
+          </FormGrid>
           <Form.Item name="address" label="地址" style={{ gridColumn: '1/3' }}>
             <Input.TextArea rows={2} placeholder="请输入地址" />
           </Form.Item>
           {/* 紧急联系人信息 */}
           <div style={{ gridColumn: '1/3', margin: '16px 0', borderBottom: '1px solid #f0f0f0' }} />
           <h3 style={{ gridColumn: '1/3', marginBottom: '16px' }}>紧急联系人信息</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FormGrid>
             <Form.Item name={['emergencyContact', 'name']} label="紧急联系人姓名">  
               <Input placeholder="请输入紧急联系人姓名" />  
             </Form.Item>
@@ -1257,7 +1265,7 @@ const EmployeeInfo = () => {
                 }}
               />
             </Form.Item>
-          </div>
+          </FormGrid>
           {/* 备注信息 */}
           <div style={{ gridColumn: '1/3', margin: '16px 0', borderBottom: '1px solid #f0f0f0' }} />
           <h3 style={{ gridColumn: '1/3', marginBottom: '16px' }}>备注信息</h3>

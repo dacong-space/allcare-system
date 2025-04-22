@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const employeeRoutes = require('./routes/employees');
 const documentRoutes = require('./routes/documents');
+const expirationsRoutes = require('./routes/expirations');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -37,6 +38,7 @@ app.use('/api', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/expirations', expirationsRoutes);
 
 // 导入模型以支持员工表重建
 const Employee = require('./models/Employee');

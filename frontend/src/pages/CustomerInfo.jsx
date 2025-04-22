@@ -78,6 +78,10 @@ const PageContainer = styled.div`
   min-height: calc(100vh - 64px);
   max-height: calc(100vh - 64px);
   overflow-y: auto;
+
+  @media (max-width: 576px) {
+    padding: 12px 16px 16px;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -92,6 +96,16 @@ const PageHeader = styled.div`
     margin: 0;
     color: var(--text-primary);
   }
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+  }
 `;
 
 const SearchContainer = styled.div`
@@ -102,12 +116,20 @@ const SearchContainer = styled.div`
     border-radius: 8px;
     width: 300px;
   }
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    gap: 8px;
+    .ant-input-affix-wrapper {
+      width: 100%;
+    }
+  }
 `;
 
 const TableCard = styled(Card)`
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  overflow: hidden;
+  overflow: visible;
 
   .ant-card-body {
     padding: 0;
@@ -116,43 +138,17 @@ const TableCard = styled(Card)`
   .ant-table {
     background: transparent;
   }
-
-  .ant-table-thead > tr > th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: var(--bg-secondary);
-    font-weight: 600;
-    color: var(--text-primary);
-    padding: 16px;
-    border-bottom: 1px solid var(--border-color);
-    text-align: center;
+  .ant-table-container {
+    overflow-x: auto;
+  }
+  .ant-table {
+    min-width: 600px;
   }
 
-  .ant-table-tbody > tr > td {
-    border-bottom: 1px solid var(--border-color);
-    padding: 16px;
-    transition: background 0.2s;
-    text-align: center;
-  }
-
-  .ant-table-tbody > tr:hover > td {
-    background: var(--hover-color);
-  }
-
-  .ant-table-tbody > tr.edited-row > td {
-    background: #ecfdf5;
-    animation: highlight-fade 3s ease-in-out;
-  }
-
-  .ant-pagination {
-    margin: 16px;
-    padding: 0;
-  }
-
-  @keyframes highlight-fade {
-    0%, 70% { background-color: #d1fae5; }
-    100% { background-color: #ecfdf5; }
+  @media (max-width: 576px) {
+    .ant-table {
+      min-width: auto;
+    }
   }
 `;
 
@@ -171,6 +167,12 @@ const ActionButton = styled(Button)`
   .anticon {
     font-size: 14px;
     margin-right: 6px;
+  }
+
+  @media (max-width: 576px) {
+    width: 100%;
+    font-size: 12px;
+    padding: 0 8px;
   }
 `;
 
@@ -244,6 +246,15 @@ const DetailItem = styled.div`
     color: var(--text-primary);
     font-weight: 500;
     font-size: 14px;
+  }
+`;
+
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  @media (max-width: 576px) {
+    gap: 8px;
   }
 `;
 
@@ -1190,7 +1201,7 @@ const CustomerInfo = () => {
       >
         <Form form={form} layout="vertical" initialValues={{ status: 'active' }}>
           {/* 基本信息 */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FormGrid>
             <Form.Item name="name" label="姓名" rules={[{ required: true, message: '请输入姓名' }]}>
               <Input placeholder="请输入姓名" />
             </Form.Item>
@@ -1274,12 +1285,12 @@ const CustomerInfo = () => {
             <Form.Item name="address" label="地址" wrapperCol={{ span: 24 }}>
               <Input.TextArea rows={2} placeholder="请输入地址" />
             </Form.Item>
-          </div>
+          </FormGrid>
 
           {/* 时间信息 */}
           <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
             <h3>时间信息</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <FormGrid>
               <Form.Item name="joinDate" label="加入时间">
                 <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
               </Form.Item>
@@ -1292,7 +1303,7 @@ const CustomerInfo = () => {
               <Form.Item name="lastCarePlanDate" label="最新Care Plan日期">
                 <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
               </Form.Item>
-            </div>
+            </FormGrid>
             <Form.Item name="preferredDate" label="偏好时间">
               <Select mode="multiple" placeholder="请选择偏好时间">
                 <Select.Option value="周一">周一</Select.Option>
@@ -1309,7 +1320,7 @@ const CustomerInfo = () => {
           {/* 紧急联系人信息 */}
           <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
             <h3>紧急联系人信息</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <FormGrid>
               <Form.Item name={['emergencyContact', 'name']} label="紧急联系人姓名">
                 <Input placeholder="请输入姓名" />
               </Form.Item>
@@ -1326,7 +1337,7 @@ const CustomerInfo = () => {
               <Form.Item name={['emergencyContact', 'phone']} label="紧急联系人电话">
                 <Input placeholder="请输入电话" />
               </Form.Item>
-            </div>
+            </FormGrid>
           </div>
 
           {/* 备注信息 */}
