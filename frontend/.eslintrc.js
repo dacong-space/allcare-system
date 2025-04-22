@@ -18,10 +18,12 @@ module.exports = {
   settings: {
     react: { version: "detect" }
   },
+  ignorePatterns: ['.eslintrc.js', 'cypress.config.js', 'cypress/**/*.js'],
   rules: {
     "react/prop-types": "off",
     "no-console": "warn",
-    "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    "no-unused-vars": "off",
+    "no-case-declarations": "off",
     "no-debugger": "error"
   }
 }

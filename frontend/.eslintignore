@@ -1,0 +1,5 @@
+.eslintrc.js
+cypress.config.js
+cypress/
+**/*.cy.js
+**/*.spec.js

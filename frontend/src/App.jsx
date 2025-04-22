@@ -15,6 +15,7 @@ import CustomerInfo from './pages/CustomerInfo';
 import EmployeeInfo from './pages/EmployeeInfo';
 import AboutUs from './pages/AboutUs';
 import Reports from './pages/Reports';
+import UpcomingExpirations from './pages/UpcomingExpirations';
 
 // 导入布局组件
 import MainLayout from './components/layout/MainLayout';
@@ -74,6 +75,7 @@ const AppRoutes = () => {
           <Route path="/document-center" element={<DocumentCenter />} />
           <Route path="/customer-info" element={<CustomerInfo />} />
           <Route path="/employee-info" element={<EmployeeInfo />} />
+          <Route path="/upcoming-expirations" element={<UpcomingExpirations />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/reports" element={<Reports />} />
           {/* 其他页面可以在这里添加 */}

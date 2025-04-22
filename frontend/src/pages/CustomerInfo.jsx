@@ -118,6 +118,9 @@ const TableCard = styled(Card)`
   }
 
   .ant-table-thead > tr > th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     background: var(--bg-secondary);
     font-weight: 600;
     color: var(--text-primary);

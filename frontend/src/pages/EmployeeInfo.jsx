@@ -838,7 +838,8 @@ const EmployeeInfo = () => {
       } else {
         cell = v ?? '';
       }
-      return `"${cell.replace(/"/g, '""')}"`;
+      // 确保 cell 一定为字符串再 replace
+      return `"${String(cell).replace(/"/g, '""')}"`;
     });
     csvRows.push(values.join(','));
     const csvString = '\uFEFF' + csvRows.join('\r\n');

@@ -275,6 +275,12 @@ const menuItems = [
     icon: <InfoCircleOutlined />,
     label: '关于我们',
     path: '/about-us'
+  },
+  {
+    key: 'upcoming',
+    icon: <BellOutlined />,
+    label: '即将到期',
+    path: '/upcoming-expirations'
   }
 ];
 
@@ -286,7 +292,8 @@ const pathMap = {
   '/employee-info': ['首页', '员工信息'],
   '/document-center': ['首页', '文档中心'],
   '/reports': ['首页', '数据报表'],
-  '/about-us': ['首页', '关于我们']
+  '/about-us': ['首页', '关于我们'],
+  '/upcoming-expirations': ['首页', '即将到期'],
 };
 
 const MainLayout = () => {
@@ -308,6 +315,7 @@ const MainLayout = () => {
     if (path === '/employee-info') return 'employee';
     if (path === '/about-us') return 'about';
     if (path === '/reports') return 'reports';
+    if (path === '/upcoming-expirations') return 'upcoming';
     const item = menuItems.find(item => item.path === path);
     return item ? item.key : '';
   };
