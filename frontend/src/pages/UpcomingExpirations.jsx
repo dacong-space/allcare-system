@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, Select, Typography, Grid, Table, message } from 'antd';
+import { Row, Col, Card, Select, Typography, Grid, Table, message, Button, Modal, Checkbox } from 'antd';
 import axios from 'axios';
 import { API_BASE } from '../utils/api';
 import styled from 'styled-components';
 import dayjs from 'dayjs';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -68,6 +71,9 @@ const UpcomingExpirations = () => {
   );
   const [dataMap, setDataMap] = useState({});
   const [loadingMap, setLoadingMap] = useState({});
+  // 导出功能状态
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [selectedExportCards, setSelectedExportCards] = useState([]);
 
   // 用于按类型和时长拉取数据
   const fetchData = (cardKey, duration) => {
@@ -117,6 +123,38 @@ const UpcomingExpirations = () => {
     const days = Math.max(1, Number(value) || 1);
     setCustomDays(prev => ({ ...prev, [cardKey]: days }));
     fetchData(cardKey, days.toString());
+  };
+
+  // 导出 Excel
+  const exportToExcel = () => {
+    const workbook = XLSX.utils.book_new();
+    selectedExportCards.forEach(key => {
+      // 生成安全的 sheet 名称，移除 Excel 不支持的字符并限制长度
+      const card = cardTypes.find(c => c.key === key);
+      const sheetName = card.title.replace(/[\\\*\:\?\[\]\/]/g, '').substring(0, 31);
+      const sheetData = (dataMap[key] || []).map(item => ({ ID: item.id, 姓名: item.name, 到期日期: dayjs(item.expireDate).format('MM-DD-YYYY') }));
+      const worksheet = XLSX.utils.json_to_sheet(sheetData);
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    });
+    XLSX.writeFile(workbook, `导出_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`);
+  };
+
+  // 导出 PDF (使用 html2canvas + jsPDF，支持中文)
+  const exportToPDF = async () => {
+    const doc = new jsPDF('p', 'pt', 'a4');
+    for (let i = 0; i < selectedExportCards.length; i++) {
+      const key = selectedExportCards[i];
+      const elem = document.getElementById(`export-${key}`);
+      if (!elem) continue;
+      const canvas = await html2canvas(elem, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const imgProps = doc.getImageProperties(imgData);
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      if (i < selectedExportCards.length - 1) doc.addPage();
+    }
+    doc.save(`导出_${dayjs().format('YYYYMMDD_HHmmss')}.pdf`);
   };
 
   const renderCard = (card) => (
@@ -215,7 +253,13 @@ const UpcomingExpirations = () => {
 
   return (
     <PageWrapper>
-      <Title level={3} style={{ marginBottom: 4 }}>即将到期</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={3}>即将到期</Title>
+        <Button
+          type="primary"
+          onClick={() => { setSelectedExportCards([]); setExportModalVisible(true); }}
+        >导出</Button>
+      </div>
       <Row gutter={{ xs: 8, sm: 16, md: 24 }}>
         {cardTypes.map(card => (
           <Col key={card.key} xs={24} sm={12} md={8}>
@@ -223,6 +267,43 @@ const UpcomingExpirations = () => {
           </Col>
         ))}
       </Row>
+      <Modal
+        title="导出数据"
+        visible={exportModalVisible}
+        onCancel={() => setExportModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        <Checkbox.Group
+          options={cardTypes.map(c => ({ label: c.title, value: c.key }))}
+          value={selectedExportCards}
+          onChange={list => setSelectedExportCards(list)}
+        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, marginBottom: 0 }}>
+          <Button type="primary" style={{ marginRight: 8 }} onClick={exportToExcel}>下载Excel</Button>
+          <Button type="primary" style={{ marginRight: 8 }} onClick={exportToPDF}>下载PDF</Button>
+          <Button onClick={() => setExportModalVisible(false)}>取消</Button>
+        </div>
+        {selectedExportCards.map(key => {
+          const card = cardTypes.find(c => c.key === key);
+          return (
+            <div
+              key={key}
+              id={`export-${key}`}
+              style={{ marginTop: key === 'customer_reass' ? -8 : 0, padding: 16, background: '#fff' }}
+            >
+              <Title level={5}>{card.title}</Title>
+              <Table
+                columns={columns}
+                dataSource={dataMap[key] || []}
+                pagination={false}
+                size="small"
+                rowKey="id"
+              />
+            </div>
+          );
+        })}
+      </Modal>
     </PageWrapper>
   );
 };

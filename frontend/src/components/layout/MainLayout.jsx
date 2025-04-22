@@ -354,7 +354,7 @@ const MainLayout = () => {
     <StyledLayout>
       <Sider
         breakpoint="md"
-        collapsedWidth={0}
+        collapsedWidth={80}
         onBreakpoint={(broken) => setCollapsed(broken)}
         trigger={null}
         collapsible
@@ -384,6 +384,7 @@ const MainLayout = () => {
             <Menu
               theme={theme === 'dark' ? 'dark' : 'light'}
               mode="inline"
+              inlineCollapsed={collapsed}
               selectedKeys={[getSelectedKey(location.pathname)]}
               style={{
                 background: 'var(--sidebar-bg)',
