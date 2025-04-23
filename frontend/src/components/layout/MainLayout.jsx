@@ -4,6 +4,8 @@ import { IconButton, Badge as MUIBadge, Menu as MUIMenu, MenuItem as MUIMenuItem
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import './MenuAnimation.css';
 import {
   MenuUnfoldOutlined,
@@ -31,6 +33,7 @@ const { Text } = Typography;
 // 样式组件
 const StyledLayout = styled(Layout)`
   min-height: 100vh;
+  position: relative;
 `;
 
 const StyledHeader = styled(Header)`
@@ -68,7 +71,7 @@ const HeaderLeft = styled.div`
 const HeaderRight = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 0px;
 `;
 
 const StyledContent = styled(Content)`
@@ -100,15 +103,13 @@ const StyledContent = styled(Content)`
 `;
 
 const Logo = styled.div`
-  height: 56px;
-  min-width: 180px;
+  height: ${props => props.siderCollapsed ? '80px' : '56px'};
+  width: ${props => props.siderCollapsed ? '80px' : '180px'};
   display: flex;
   align-items: center;
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0 24px;
-  margin-right: 20px;
+  justify-content: ${props => props.siderCollapsed ? 'center' : 'flex-start'};
+  padding: 0 ${props => props.siderCollapsed ? '0' : '24px'};
+  margin-right: ${props => props.siderCollapsed ? '0' : '20px'};
   color: var(--primary-color);
   font-weight: 700;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -116,22 +117,15 @@ const Logo = styled.div`
   cursor: pointer;
   
   img {
-    height: 40px;
-    width: 40px;
-    border-radius: 8px;
-    object-fit: cover;
-    margin-right: 12px;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    width: 48px;
+    height: auto;
+    margin-right: ${props => props.siderCollapsed ? '0' : '8px'};
+    border-radius: 20px;
   }
-
+  
   .logo-text {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: var(--primary-color);
-    margin-left: 0;
-    transition: color 0.3s;
+    font-size: 26px;
+    margin-left: -3px;
   }
 `;
 
@@ -230,7 +224,19 @@ const StyledFooter = styled(Footer)`
   }
 `;
 
-// 已将折叠按钮移动到菜单中
+// 全局折叠按钮，挂在侧边栏与内容分隔线中点
+const CollapseButton = styled(IconButton)`
+  && {
+    position: absolute;
+    left: ${props => (props.collapsed ? '80px' : '200px')};
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: transparent;
+    border: none;
+    padding: 2px;
+    z-index: 1002;
+  }
+`;
 
 // 菜单配置
 const menuItems = [
@@ -371,7 +377,7 @@ const MainLayout = () => {
         collapsed={collapsed}
         width={200}
         style={{
-          overflow: 'auto',
+          overflow: 'visible',
           height: '100vh',
           position: 'fixed',
           left: 0,
@@ -389,9 +395,6 @@ const MainLayout = () => {
               <Logo siderCollapsed={collapsed}>
                 <img src="/images/logo.jpg" alt="Logo" />
                 {!collapsed && <span className="logo-text">Allcare</span>}
-                <div className="menu-toggle-btn trigger-button" onClick={() => setCollapsed(!collapsed)} style={{ fontSize: '16px', cursor: 'pointer', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '8px', color: 'var(--text-primary)', borderRadius: '4px', transition: 'all 0.3s ease' }}>
-                  {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                </div>
               </Logo>
             </Link>
             <Menu
@@ -445,6 +448,10 @@ const MainLayout = () => {
         }
       >
       </Sider>
+      {/* 中点全局折叠按钮 */}
+      <CollapseButton disableRipple collapsed={collapsed} onClick={() => setCollapsed(!collapsed)} size="small">
+        {collapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
+      </CollapseButton>
 
       <Layout>
         <StyledHeader siderCollapsed={collapsed}>
