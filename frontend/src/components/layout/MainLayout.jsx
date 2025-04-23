@@ -100,14 +100,14 @@ const StyledContent = styled(Content)`
 `;
 
 const Logo = styled.div`
-  height: 40px;
-  min-width: 160px;
+  height: 56px;
+  min-width: 180px;
   display: flex;
   align-items: center;
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  padding: 0 20px;
+  padding: 0 24px;
   margin-right: 20px;
   color: var(--primary-color);
   font-weight: 700;
@@ -116,11 +116,11 @@ const Logo = styled.div`
   cursor: pointer;
   
   img {
-    height: 32px;
-    width: 32px;
+    height: 40px;
+    width: 40px;
     border-radius: 8px;
     object-fit: cover;
-    margin-right: 10px;
+    margin-right: 12px;
     background: #fff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
@@ -296,6 +296,13 @@ const pathMap = {
   '/upcoming-expirations': ['首页', '即将到期'],
 };
 
+// 菜单按钮项顶部边距
+const SIDEBAR_MENU_MARGIN_TOP = 2;
+
+// LOGO 区块高度与图片尺寸（px），可根据需要调整
+const LOGO_CONTAINER_HEIGHT = 56;
+const LOGO_IMAGE_SIZE = 36;
+
 const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useContext(AuthContext);
@@ -398,7 +405,7 @@ const MainLayout = () => {
                 borderRight: 'none',
                 flex: '1 0 auto',
                 overflow: 'auto',
-                marginTop: '8px',
+                marginTop: `${SIDEBAR_MENU_MARGIN_TOP}px`,
                 marginBottom: collapsed ? '0' : '75px'
               }}
               className="sidebar-menu"
