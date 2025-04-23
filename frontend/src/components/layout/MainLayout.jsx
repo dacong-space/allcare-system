@@ -104,9 +104,9 @@ const Logo = styled.div`
   min-width: 160px;
   display: flex;
   align-items: center;
-  background: var(--header-bg);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
   padding: 0 20px;
   margin-right: 20px;
   color: var(--primary-color);
