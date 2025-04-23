@@ -271,6 +271,12 @@ const menuItems = [
     path: '/document-center'
   },
   {
+    key: 'upcoming',
+    icon: <BellOutlined />,
+    label: '即将到期',
+    path: '/upcoming-expirations'
+  },
+  {
     key: 'reports',
     icon: <BarChartOutlined />,
     label: '数据报表',
@@ -282,12 +288,6 @@ const menuItems = [
     label: '关于我们',
     path: '/about-us'
   },
-  {
-    key: 'upcoming',
-    icon: <BellOutlined />,
-    label: '即将到期',
-    path: '/upcoming-expirations'
-  }
 ];
 
 // 路径映射到面包屑
