@@ -502,40 +502,34 @@ const Home = () => {
 
       {/* 核心数据统计 */}
       <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
-        {/* 合并 客户总数 和 员工总数 */}
-        <Col xs={24} md={12}>
+        <Col xs={24} md={24}>
           <StatCard>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '48%' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
-                  <UserOutlined style={{ fontSize: '20px', color: '#3B82F6' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '33%' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                  <UserOutlined style={{ fontSize: '18px', color: '#3B82F6' }} />
                 </div>
-                <Statistic title="客户总数" value={customerCount} style={{ fontSize: '20px', margin: 0 }} />
+                <Statistic title="客户总数" value={customerCount} style={{ fontSize: '18px', margin: 0 }} />
                 <div style={{ fontSize: '12px', marginTop: '4px', color: customerGrowth >= 0 ? '#10B981' : '#EF4444' }}>
                   {customerGrowth >= 0 ? '↑' : '↓'} {Math.abs(customerGrowth)}% 较上月
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '48%' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
-                  <TeamOutlined style={{ fontSize: '20px', color: '#10B981' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '33%' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                  <TeamOutlined style={{ fontSize: '18px', color: '#10B981' }} />
                 </div>
-                <Statistic title="员工总数" value={employeeCount} style={{ fontSize: '20px', textAlign: 'right', margin: 0 }} />
+                <Statistic title="员工总数" value={employeeCount} style={{ fontSize: '18px', margin: 0 }} />
                 <div style={{ fontSize: '12px', marginTop: '4px', color: employeeGrowth >= 0 ? '#10B981' : '#EF4444' }}>
                   {employeeGrowth >= 0 ? '↑' : '↓'} {Math.abs(employeeGrowth)}% 较上月
                 </div>
               </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '33%' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                  <FileTextOutlined style={{ fontSize: '18px', color: '#F59E0B' }} />
+                </div>
+                <Statistic title="文档总数" value={documentCount} style={{ fontSize: '18px', margin: 0 }} />
+              </div>
             </div>
-          </StatCard>
-        </Col>
-        <Col xs={24} md={8}>
-          <StatCard iconBg="rgba(245, 158, 11, 0.1)" iconColor="#F59E0B" valueColor="#F59E0B">
-            <div className="stat-icon">
-              <FileTextOutlined />
-            </div>
-            <Statistic
-              title="文档总数"
-              value={documentCount}
-            />
           </StatCard>
         </Col>
       </Row>
